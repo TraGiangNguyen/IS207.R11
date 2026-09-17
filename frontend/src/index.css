@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#FAF8F5] text-slate-800 min-h-screen font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Glassmorphism & Custom Utilities with Teal Pastel & Gold Palette */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 235, 233, 0.8);
+  box-shadow: 0 10px 30px -10px rgba(8, 129, 120, 0.08), 0 0 15px -2px rgba(0, 0, 0, 0.03);
+}
+
+.beauty-button-gradient {
+  background: #088178;
+  box-shadow: 0 4px 14px 0 rgba(8, 129, 120, 0.25);
+}
+
+.beauty-button-gradient:hover {
+  background: #066d65;
+  box-shadow: 0 6px 18px rgba(8, 129, 120, 0.35);
+}

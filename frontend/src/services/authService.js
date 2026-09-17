@@ -1,0 +1,40 @@
+import api from './api.js';
+
+export const authService = {
+  /**
+   * Đăng nhập tài khoản
+   */
+  async login(credentials) {
+    return api.post('/auth/login', credentials);
+  },
+
+  /**
+   * Đăng ký tài khoản mới
+   */
+  async register(data) {
+    return api.post('/auth/register', data);
+  },
+
+  /**
+   * Yêu cầu link/mã quên mật khẩu
+   */
+  async forgotPassword(email) {
+    return api.post('/auth/forgot-password', { email });
+  },
+
+  /**
+   * Đặt lại mật khẩu mới qua token
+   */
+  async resetPassword(token, newPassword) {
+    return api.post('/auth/reset-password', { token, newPassword });
+  },
+
+  /**
+   * Lấy thông tin cá nhân hiện tại
+   */
+  async getProfile() {
+    return api.get('/auth/me');
+  },
+};
+
+export default authService;

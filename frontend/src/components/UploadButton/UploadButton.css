@@ -1,0 +1,51 @@
+.upload-btn-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.upload-hidden-input {
+  display: none;
+}
+
+.premium-upload-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+}
+
+.premium-upload-btn:hover {
+  transform: translateY(-1px);
+  background: var(--accent-hover);
+  box-shadow: 0 4px 16px rgba(16,185,129,0.35);
+}
+
+.premium-upload-btn:active {
+  transform: translateY(0);
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: transform 0.3s ease;
+}
+
+.premium-upload-btn:hover .icon-wrapper {
+  transform: translateY(-2px);
+}
+
+.btn-glow { display: none; }

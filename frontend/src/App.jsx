@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 import MainLayout from "./components/Layout/MainLayout.jsx";
 import Dashboard from "./modules/dashboard/Dashboard.jsx";
 import ProductCatalogPage from "./pages/ProductCatalogPage.jsx";
+import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 
 export function App() {
   return (
@@ -29,6 +30,8 @@ export function App() {
         <Route path="dashboard" element={<Dashboard />} />
         {/* Đưa ProductCatalog vào đây để dùng chung Layout */}
         <Route path="products" element={<ProductCatalogPage />} />
+        {/* Chi tiết sản phẩm: click vào card → /products/:id */}
+        <Route path="products/:id" element={<ProductDetailPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/products" replace />} />

@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Heart, Star } from "lucide-react";
 
 export default function ProductCard({ product }) {
+  const navigate = useNavigate();
   const formattedPrice = (price) => `$${(price / 1000).toFixed(2)}`;
 
   return (
@@ -9,7 +11,11 @@ export default function ProductCard({ product }) {
         {product.discountPercentage}% OFF
       </div>
 
-      <div className="aspect-square bg-[#F4F6F6] rounded-xl flex items-center justify-center p-6 relative">
+      {/* Clickable image area */}
+      <div
+        className="aspect-square bg-[#F4F6F6] rounded-xl flex items-center justify-center p-6 relative cursor-pointer"
+        onClick={() => navigate(`/products/${product.id}`)}
+      >
         <img
           src={product.image_url}
           alt={product.name}
@@ -17,7 +23,11 @@ export default function ProductCard({ product }) {
         />
       </div>
 
-      <h3 className="text-lg font-medium text-gray-900 line-clamp-2 min-h-[56px]">
+      {/* Clickable product name */}
+      <h3
+        className="text-lg font-medium text-gray-900 line-clamp-2 min-h-[56px] cursor-pointer hover:text-[#008B8B] transition-colors"
+        onClick={() => navigate(`/products/${product.id}`)}
+      >
         {product.name}
       </h3>
 

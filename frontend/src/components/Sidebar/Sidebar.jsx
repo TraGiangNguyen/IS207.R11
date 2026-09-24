@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
+  User,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -71,6 +72,23 @@ export default function Sidebar() {
         >
           <Package size={20} className="flex-shrink-0" />
           {!isCollapsed && <span>Products</span>}
+        </NavLink>
+
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `flex items-center gap-3 py-3 rounded-lg transition-colors text-sm font-medium ${
+              isCollapsed ? "justify-center px-0" : "px-4"
+            } ${
+              isActive
+                ? "text-[#008B8B] bg-[#caf8e4]"
+                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+            }`
+          }
+          title={isCollapsed ? "Profile" : ""}
+        >
+          <User size={20} className="flex-shrink-0" />
+          {!isCollapsed && <span>Profile</span>}
         </NavLink>
       </nav>
     </aside>

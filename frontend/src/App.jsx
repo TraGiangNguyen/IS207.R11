@@ -8,6 +8,7 @@ import MainLayout from "./components/Layout/MainLayout.jsx";
 import Dashboard from "./modules/dashboard/Dashboard.jsx";
 import ProductCatalogPage from "./pages/ProductCatalogPage.jsx";
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 export function App() {
   return (
@@ -17,7 +18,7 @@ export function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* Main Layout chứa chung Sidebar và Header cho cả 2 trang */}
+      {/* Main Layout chứa chung Sidebar và Header */}
       <Route
         path="/"
         element={
@@ -28,10 +29,9 @@ export function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        {/* Đưa ProductCatalog vào đây để dùng chung Layout */}
         <Route path="products" element={<ProductCatalogPage />} />
-        {/* Chi tiết sản phẩm: click vào card → /products/:id */}
         <Route path="products/:id" element={<ProductDetailPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/products" replace />} />

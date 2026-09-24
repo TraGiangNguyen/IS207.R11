@@ -58,6 +58,23 @@ export const UserModel = {
   },
 
   /**
+   * Find user by ID including password_hash
+   */
+  async findByIdWithPassword(id) {
+    const [rows] = await executeQuery('SELECT * FROM users WHERE id = ? LIMIT 1', [id]);
+    return rows[0] || null;
+  },
+
+  /**
+   * Update user profile details (fullName, avatarUrl)
+   */
+  async updateProfile(userId, { fullName, avatarUrl }) {
+    const sql = 'UPDATE users SET full_name = ?, avatar_url = ? WHERE id = ?';
+    const [result] = await executeQuery(sql, [fullName, avatarUrl, userId]);
+    return result.affectedRows > 0;
+  },
+
+  /**
    * Update User Password and clear reset token
    */
   async updatePassword(userId, newPasswordHash) {

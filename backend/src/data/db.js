@@ -172,6 +172,19 @@ export async function executeQuery(sql, params = []) {
     return [{ affectedRows: 0 }, []];
   }
 
+  // 5. UPDATE users full_name, avatar_url
+  if (/UPDATE users SET full_name = \?, avatar_url = \? WHERE id = \?/i.test(cleanSQL)) {
+    const [full_name, avatar_url, id] = params;
+    const user = inMemoryStore.users.find((u) => Number(u.id) === Number(id));
+    if (user) {
+      user.full_name = full_name;
+      user.avatar_url = avatar_url;
+      user.updated_at = new Date();
+      return [{ affectedRows: 1 }, []];
+    }
+    return [{ affectedRows: 0 }, []];
+  }
+
   return [[], []];
 }
 

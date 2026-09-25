@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+
+// Đã sửa lại đường dẫn tương đối chuẩn xác dựa trên cấu trúc thư mục của bạn
 import Sidebar from "../Sidebar/Sidebar";
-import Header from "./Header";
+import Header from "../common/Header";
 
 export default function MainLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -26,7 +28,9 @@ export default function MainLayout() {
       {/* Cột phải: Header + Nội dung chính */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header luôn cố định ở trên cùng với nút mở menu trên mobile */}
-        <Header onToggleMobileMenu={() => setIsMobileNavOpen((prev) => !prev)} />
+        <Header
+          onToggleMobileMenu={() => setIsMobileNavOpen((prev) => !prev)}
+        />
 
         {/* Vùng render component động (Dashboard, Products, Profile...) */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto">

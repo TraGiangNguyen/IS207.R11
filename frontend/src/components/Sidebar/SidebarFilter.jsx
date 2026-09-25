@@ -1,120 +1,154 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, RotateCcw, Star } from "lucide-react";
 
-const categories = [
-  { name: "Thermometers", count: 29 },
-  { name: "Oximeters", count: 5 },
-  { name: "BP Monitors", count: 1 },
-  { name: "Personal Care", count: 1 },
-];
+export default function SidebarFilter({ onFilterChange }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
+  const [selectedRatings, setSelectedRatings] = useState([]);
+  const [selectedColor, setSelectedColor] = useState("");
 
-const colors = [
-  "#1D4ED8",
-  "#93C5FD",
-  "#F59E0B",
-  "#EF4444",
-  "#EC4899",
-  "#8B4513",
-  "#6B7280",
-];
+  const categories = [
+    { name: "Thermometers", count: 29 },
+    { name: "Oximeters", count: 5 },
+    { name: "BP Monitors", count: 1 },
+    { name: "Personal Care", count: 1 },
+  ];
 
-function ResetButton({ title }) {
-  return (
-    <div className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer hover:text-gray-600">
-      <span>{title}</span>
-      <RotateCcw size={16} />
-    </div>
-  );
-}
+  const ratings = [5, 4, 3, 2, 1];
+  const colors = [
+    "bg-blue-600",
+    "bg-blue-400",
+    "bg-orange-500",
+    "bg-red-500",
+    "bg-pink-500",
+    "bg-amber-800",
+    "bg-slate-600",
+  ];
 
-function StarRating({ rating }) {
-  return (
-    <div className="flex items-center gap-1">
-      {[...Array(rating)].map((_, i) => (
-        <Star key={i} size={16} className="text-yellow-400 fill-yellow-400" />
-      ))}
-      {[...Array(5 - rating)].map((_, i) => (
-        <Star key={i} size={16} className="text-gray-200 fill-gray-200" />
-      ))}
-    </div>
-  );
-}
-
-export default function SidebarFilter({ setPriceRange, priceRange }) {
-  const handlePriceChange = (e, type) => {
-    const value = parseInt(e.target.value) || 0;
-    if (type === "min") {
-      setPriceRange([value, priceRange[1]]);
-    } else {
-      setPriceRange([priceRange[0], value]);
-    }
+  const handleCategoryToggle = (category) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category],
+    );
   };
 
+  const handleRatingToggle = (rating) => {
+    setSelectedRatings((prev) =>
+      prev.includes(rating)
+        ? prev.filter((r) => r !== rating)
+        : [...prev, rating],
+    );
+  };
+
+  const handlePriceChange = (type, value) => {
+    const numValue = parseInt(value) || 0;
+    setPriceRange((prev) => ({ ...prev, [type]: numValue }));
+  };
+
+  // Emit data lên component cha
+  useEffect(() => {
+    if (onFilterChange) {
+      onFilterChange({
+        searchTerm,
+        categories: selectedCategories,
+        priceRange,
+        ratings: selectedRatings,
+        color: selectedColor,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    searchTerm,
+    selectedCategories,
+    priceRange,
+    selectedRatings,
+    selectedColor,
+  ]);
+
   return (
-    <div className="w-80 flex-shrink-0 bg-white p-6 border rounded-xl space-y-8">
+    <div className="w-[300px] flex-shrink-0 bg-[#fafafa] p-6 rounded-2xl border border-gray-100 space-y-8">
       <div className="relative">
+        <Search
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+          size={18}
+        />
         <input
           type="text"
           placeholder="Search"
-          className="w-full pl-12 pr-4 py-3 bg-[#F4F6F6] border border-gray-100 rounded-full focus:ring-1 focus:ring-[#008B8B] outline-none text-sm"
-        />
-        <Search
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-          size={20}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full bg-[#f0f2f5] text-gray-700 rounded-full py-3 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-[#008B8B] transition-shadow"
         />
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-900">Categories</h3>
-        <ul className="space-y-3">
-          {categories.map((cat, index) => (
-            <li
-              key={index}
-              className="flex items-center justify-between text-base text-gray-700 hover:text-gray-900 cursor-pointer group"
+        <h3 className="text-xl font-bold text-gray-900">Categories</h3>
+        <div className="space-y-3">
+          {categories.map((cat) => (
+            <label
+              key={cat.name}
+              className="flex items-center justify-between cursor-pointer group"
             >
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border border-gray-300 rounded flex items-center justify-center group-hover:border-[#008B8B]">
-                  {index === 0 && (
-                    <span className="w-2.5 h-2.5 bg-[#008B8B] rounded-sm"></span>
-                  )}
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(cat.name)}
+                  onChange={() => handleCategoryToggle(cat.name)}
+                  className="w-5 h-5 rounded border-gray-300 text-[#008B8B] focus:ring-[#008B8B] accent-[#008B8B] cursor-pointer"
+                />
+                <span
+                  className={`text-base ${selectedCategories.includes(cat.name) ? "text-gray-900 font-medium" : "text-gray-600"}`}
+                >
+                  {cat.name}
                 </span>
-                {cat.name}
-              </span>
-              <span className="text-sm text-gray-400">({cat.count})</span>
-            </li>
+              </div>
+              <span className="text-gray-400 text-sm">({cat.count})</span>
+            </label>
           ))}
-        </ul>
+        </div>
       </div>
 
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-gray-900">Price Range</h3>
-          <ResetButton title="Reset" />
+          <h3 className="text-xl font-bold text-gray-900">Price Range</h3>
+          <button
+            onClick={() => setPriceRange({ min: 0, max: 100 })}
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            Reset <RotateCcw size={14} />
+          </button>
         </div>
-        <div className="relative pt-6">
-          <div className="absolute left-0 right-0 h-1.5 bg-[#caf8e4] rounded-full"></div>
-          <div className="absolute left-1/4 right-1/4 h-1.5 bg-[#008B8B] rounded-full"></div>
-          <div className="absolute left-1/4 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-[#008B8B] border-[3px] border-white rounded-full shadow-md cursor-pointer"></div>
-          <div className="absolute left-3/4 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-[#008B8B] border-[3px] border-white rounded-full shadow-md cursor-pointer"></div>
+
+        <div className="relative h-2 bg-[#d1f0f0] rounded-full mt-4 mb-6">
+          <div className="absolute left-1/4 right-1/4 h-full bg-[#008B8B] rounded-full"></div>
+          <div className="absolute left-1/4 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#008B8B] rounded-full shadow-md"></div>
+          <div className="absolute right-1/4 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#008B8B] rounded-full shadow-md"></div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex-1 flex items-center gap-2 p-3 bg-[#F4F6F6] rounded-full text-sm text-gray-700">
-            <span className="text-gray-400">$</span>
+
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              $
+            </span>
             <input
-              type="text"
-              value={priceRange[0]}
-              onChange={(e) => handlePriceChange(e, "min")}
-              className="w-full bg-transparent outline-none"
+              type="number"
+              value={priceRange.min}
+              onChange={(e) => handlePriceChange("min", e.target.value)}
+              className="w-full bg-[#f0f2f5] rounded-full py-2.5 pl-8 pr-4 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#008B8B]"
             />
           </div>
-          <span className="text-gray-400 text-sm">To</span>
-          <div className="flex-1 flex items-center gap-2 p-3 bg-[#F4F6F6] rounded-full text-sm text-gray-700">
-            <span className="text-gray-400">$</span>
+          <span className="text-gray-400 font-medium">To</span>
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              $
+            </span>
             <input
-              type="text"
-              value={priceRange[1]}
-              onChange={(e) => handlePriceChange(e, "max")}
-              className="w-full bg-transparent outline-none"
+              type="number"
+              value={priceRange.max}
+              onChange={(e) => handlePriceChange("max", e.target.value)}
+              className="w-full bg-[#f0f2f5] rounded-full py-2.5 pl-8 pr-4 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#008B8B]"
             />
           </div>
         </div>
@@ -122,45 +156,67 @@ export default function SidebarFilter({ setPriceRange, priceRange }) {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-gray-900">Rating</h3>
-          <ResetButton title="Reset" />
+          <h3 className="text-xl font-bold text-gray-900">Rating</h3>
+          <button
+            onClick={() => setSelectedRatings([])}
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            Reset <RotateCcw size={14} />
+          </button>
         </div>
-        <ul className="space-y-3">
-          {[5, 4, 3, 2, 1].map((rating, index) => (
-            <li
-              key={index}
-              className="flex items-center justify-between text-gray-700 hover:text-gray-900 cursor-pointer group"
+        <div className="space-y-3">
+          {ratings.map((starCount) => (
+            <label
+              key={starCount}
+              className="flex items-center justify-between cursor-pointer group"
             >
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border border-gray-300 rounded flex items-center justify-center group-hover:border-[#008B8B]">
-                  {index === 0 && (
-                    <span className="w-2.5 h-2.5 bg-[#008B8B] rounded-sm"></span>
-                  )}
-                </span>
-                <StarRating rating={rating} />
-              </span>
-              <span className="text-sm text-gray-400">(189)</span>
-            </li>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={selectedRatings.includes(starCount)}
+                  onChange={() => handleRatingToggle(starCount)}
+                  className="w-5 h-5 rounded border-gray-300 text-[#008B8B] focus:ring-[#008B8B] accent-[#008B8B] cursor-pointer"
+                />
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, index) => (
+                    <Star
+                      key={index}
+                      size={18}
+                      className={
+                        index < starCount
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-200 fill-gray-200"
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+              <span className="text-gray-400 text-sm">(189)</span>
+            </label>
           ))}
-        </ul>
+        </div>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-gray-900">Color</h3>
-          <ResetButton title="Reset" />
+          <h3 className="text-xl font-bold text-gray-900">Color</h3>
+          <button
+            onClick={() => setSelectedColor("")}
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            Reset <RotateCcw size={14} />
+          </button>
         </div>
-        <div className="flex flex-wrap gap-3">
-          {colors.map((color, index) => (
-            <div
-              key={index}
-              style={{ backgroundColor: color }}
-              className={`w-10 h-10 rounded-full cursor-pointer hover:scale-110 transition-transform ${
-                index === 0
-                  ? "border-[3px] border-gray-100 ring-2 ring-[#008B8B]"
-                  : ""
-              }`}
-            ></div>
+        <div className="flex flex-wrap gap-4">
+          {colors.map((colorClass) => (
+            <button
+              key={colorClass}
+              onClick={() => setSelectedColor(colorClass)}
+              className={`w-10 h-10 rounded-full ${colorClass} transition-transform hover:scale-110 
+                ${selectedColor === colorClass ? "ring-2 ring-offset-2 ring-[#008B8B]" : ""}
+              `}
+              aria-label={`Select color ${colorClass}`}
+            />
           ))}
         </div>
       </div>

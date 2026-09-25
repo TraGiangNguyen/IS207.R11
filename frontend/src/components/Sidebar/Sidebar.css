@@ -15,7 +15,7 @@
   overflow-x: hidden;
   z-index: 100;
   background: var(--bg-sidebar);
-  box-shadow: 2px 0 12px rgba(0,0,0,0.03);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
 }
 
 .sidebar.open {
@@ -98,4 +98,50 @@
 .sidebar.closed .nav-item {
   justify-content: center;
   padding: 14px 0;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar.closed .sidebar-footer {
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.user-profile:hover {
+  background: #f0fdf4;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--border, #e2e8f0);
+  color: var(--text-secondary, #64748b);
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-primary, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

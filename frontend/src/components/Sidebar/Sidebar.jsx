@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Box, Menu, ChevronLeft } from 'lucide-react';
+import { Home, Box, Menu, ChevronLeft, User } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -16,7 +16,7 @@ const Sidebar = () => {
           {isOpen ? <ChevronLeft size={24} /> : <Menu size={24} />}
         </button>
       </div>
-      
+
       <nav className="sidebar-nav">
         <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <Home size={20} />
@@ -24,6 +24,15 @@ const Sidebar = () => {
         </NavLink>
 
       </nav>
+
+      <div className="sidebar-footer">
+        <div className="user-profile">
+          <div className="avatar">
+            <User size={20} />
+          </div>
+          {isOpen && <span className="user-name">nguyễn thanh</span>}
+        </div>
+      </div>
     </div>
   );
 };

@@ -345,7 +345,7 @@ const Dashboard = () => {
             {modalStep === 3 && (
               <>
                 <div className="db-modal-chart-preview" ref={chartRef}>
-                  <ResponsiveContainer width="100%" height={380}>
+                  <ResponsiveContainer width="100%" height={500}>
                     {renderModalChart()}
                   </ResponsiveContainer>
                 </div>

@@ -10,6 +10,9 @@
   gap: 24px;
   max-width: 1440px;
   margin: 0 auto;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   animation: dbFadeIn 0.5s ease-out forwards;
 }
 
@@ -177,6 +180,14 @@
    ═══════════════════════════════════════════════════════ */
 .db-chart-panel {
   padding: 24px 24px 20px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.db-chart-wrapper {
+  width: 100%;
+  height: 280px;
+  min-width: 0;
 }
 
 .db-panel-header {
@@ -245,9 +256,33 @@
 .db-orders-panel,
 .db-products-panel {
   padding: 24px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.db-orders-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+}
+
+.db-orders-table-wrapper::-webkit-scrollbar {
+  height: 5px;
+}
+
+.db-orders-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.db-orders-table-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .db-orders-table {
+  min-width: 440px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -423,30 +458,38 @@
 .db-modal {
   width: 100%;
   max-width: 520px;
+  max-height: 90vh;
   background: var(--bg-card);
   border-radius: 24px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   animation: modalSlideUp 0.3s ease-out;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes modalSlideUp {
-  from { opacity: 0; transform: translateY(20px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+.db-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .db-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 28px 0;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+  flex-shrink: 0;
+  gap: 12px;
 }
 
 .db-modal-title-wrap {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .db-modal-icon {
@@ -897,23 +940,226 @@
   animation: modalFadeIn 0.3s ease-out;
 }
 
+.db-modal-chart-preview-container {
+  width: 100%;
+  height: 480px;
+  min-width: 0;
+}
+
+.db-products-chart-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
 /* ═══════════════════════════════════════════════════════
-   Responsive
+   Comprehensive Responsive System
    ═══════════════════════════════════════════════════════ */
-@media (max-width: 1100px) {
+
+/* ─── Tablets & Small Laptops (<= 1024px) ─── */
+@media (max-width: 1024px) {
+  .db-container {
+    padding: 24px 20px 56px;
+    gap: 20px;
+  }
   .db-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
   .db-bottom-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 
-@media (max-width: 680px) {
-  .db-container { padding: 20px 16px 48px; gap: 18px; }
-  .db-header-title { font-size: 1.5rem; }
-  .db-kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .db-kpi-value { font-size: 1.5rem; }
-  .db-table-head,
-  .db-table-row { grid-template-columns: 90px 1fr 90px 70px; }
+/* ─── Tablets / Medium Mobile (<= 768px) ─── */
+@media (max-width: 768px) {
+  .db-container {
+    padding: 20px 16px 48px;
+    gap: 18px;
+  }
+  .db-header-title {
+    font-size: 1.65rem;
+  }
+  .db-modal-chart-preview-container {
+    height: 380px;
+  }
+}
+
+/* ─── Standard Mobile (<= 640px) ─── */
+@media (max-width: 640px) {
+  .db-container {
+    padding: 16px 12px 40px;
+    gap: 16px;
+  }
+
+  /* Header */
+  .db-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .db-header-left {
+    display: flex;
+    flex-direction: column;
+  }
+  .db-header-title {
+    font-size: 1.45rem;
+  }
+  .db-header-right {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .db-date-badge {
+    padding: 7px 12px;
+    font-size: 0.78rem;
+  }
+  .db-upload-btn {
+    padding: 8px 16px;
+    font-size: 0.82rem;
+  }
+
+  /* KPI Grid */
+  .db-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .db-kpi-card {
+    padding: 14px 14px;
+    border-radius: 14px;
+    gap: 6px;
+  }
+  .db-kpi-value {
+    font-size: 1.35rem;
+  }
+  .db-kpi-label {
+    font-size: 0.75rem;
+  }
+  .db-kpi-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  .db-kpi-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+  .db-kpi-change {
+    font-size: 0.7rem;
+  }
+
+  /* Chart Panel */
+  .db-chart-panel {
+    padding: 16px 14px 14px;
+    border-radius: 16px;
+  }
+  .db-chart-wrapper {
+    height: 220px;
+  }
+  .db-panel-header {
+    margin-bottom: 14px;
+  }
+  .db-panel-title {
+    font-size: 0.95rem;
+  }
+  .db-panel-subtitle {
+    font-size: 0.75rem;
+  }
+
+  /* Orders & Products Panels */
+  .db-orders-panel,
+  .db-products-panel {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+  .db-orders-table {
+    min-width: 420px;
+  }
+
+  /* Top Products items */
+  .db-product-name {
+    font-size: 0.82rem;
+  }
+  .db-product-sales {
+    font-size: 0.82rem;
+  }
+
+  /* Modal Wizard */
+  .db-modal {
+    border-radius: 18px;
+    max-height: 94vh;
+  }
+  .db-modal-header {
+    padding: 14px 16px;
+  }
+  .db-modal-title {
+    font-size: 1.05rem;
+  }
+  .db-modal-subtitle {
+    font-size: 0.75rem;
+  }
+  .db-modal-steps {
+    padding: 10px 16px;
+    gap: 6px;
+  }
+  .db-step-pill {
+    padding: 3px 10px;
+    font-size: 0.7rem;
+  }
+  .db-modal-dropzone {
+    margin: 14px 16px;
+    padding: 28px 14px;
+  }
+  .db-modal-drop-icon {
+    width: 48px;
+    height: 48px;
+  }
+  .db-modal-drop-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  .db-modal-configure {
+    padding: 16px;
+    gap: 16px;
+  }
+  .db-modal-chart-preview {
+    padding: 12px 14px;
+  }
+  .db-modal-chart-preview-container {
+    height: 280px;
+  }
+  .db-modal-actions {
+    padding: 14px 16px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .db-modal-btn-cancel,
+  .db-modal-btn-upload {
+    width: 100%;
+    justify-content: center;
+    padding: 11px;
+    font-size: 0.85rem;
+  }
+
+  /* Toast Notification */
+  .db-toast {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+    max-width: calc(100vw - 24px);
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+}
+
+/* ─── Compact / Small Mobile Screens (<= 380px) ─── */
+@media (max-width: 380px) {
+  .db-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .db-header-title {
+    font-size: 1.3rem;
+  }
 }

@@ -218,7 +218,7 @@ const Dashboard = () => {
                   {modalStep === 2 && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>}
                   {modalStep === 3 && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>}
                 </div>
-                <div>
+                <div className="db-modal-title-text">
                   <h2 className="db-modal-title">
                     {modalStep === 1 && 'Upload CSV File'}
                     {modalStep === 2 && 'Configure Chart'}
@@ -226,25 +226,27 @@ const Dashboard = () => {
                   </h2>
                   <p className="db-modal-subtitle">
                     {modalStep === 1 && `Only .csv files · Max ${MAX_SIZE_MB} MB`}
-                    {modalStep === 2 && `${selectedFile?.name} · ${csvData.length} rows · ${csvColumns.length} columns`}
+                    {modalStep === 2 && `${selectedFile?.name || 'File'} · ${csvData.length} rows`}
                     {modalStep === 3 && 'Download or reconfigure your chart'}
                   </p>
                 </div>
-              </div>
-
-              {/* Step pills */}
-              <div className="db-modal-steps">
-                {['Upload', 'Configure', 'Preview'].map((label, i) => (
-                  <span key={i} className={`db-step-pill ${modalStep > i + 1 ? 'done' : ''} ${modalStep === i + 1 ? 'active' : ''}`}>
-                    {modalStep > i + 1 ? '✓' : i + 1} {label}
-                  </span>
-                ))}
               </div>
 
               <button className="db-modal-close" onClick={closeModal} aria-label="Close">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
+
+            {/* Step pills */}
+            <div className="db-modal-steps">
+              {['Upload', 'Configure', 'Preview'].map((label, i) => (
+                <span key={i} className={`db-step-pill ${modalStep > i + 1 ? 'done' : ''} ${modalStep === i + 1 ? 'active' : ''}`}>
+                  {modalStep > i + 1 ? '✓' : i + 1} {label}
+                </span>
+              ))}
+            </div>
+
+            <div className="db-modal-body">
 
             {/* ═══ STEP 1: Upload ═══ */}
             {modalStep === 1 && (
@@ -345,9 +347,11 @@ const Dashboard = () => {
             {modalStep === 3 && (
               <>
                 <div className="db-modal-chart-preview" ref={chartRef}>
-                  <ResponsiveContainer width="100%" height={500}>
-                    {renderModalChart()}
-                  </ResponsiveContainer>
+                  <div className="db-modal-chart-preview-container">
+                    <ResponsiveContainer width="100%" height="100%">
+                      {renderModalChart()}
+                    </ResponsiveContainer>
+                  </div>
                 </div>
                 <div className="db-modal-actions">
                   <button className="db-modal-btn-cancel" onClick={() => setModalStep(2)}>← Reconfigure</button>
@@ -360,6 +364,7 @@ const Dashboard = () => {
               </>
             )}
 
+            </div>
           </div>
         </div>
       )}
@@ -405,16 +410,18 @@ const Dashboard = () => {
           <div><h2 className="db-panel-title">Sales Overview</h2><p className="db-panel-subtitle">Monthly revenue for this year</p></div>
           <div className="db-chart-legend"><span className="db-legend-dot" style={{ background: '#10b981' }}></span>Revenue</div>
         </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <AreaChart data={salesData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-            <defs><linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0.02} /></linearGradient></defs>
-            <CartesianGrid stroke="#f0f0f5" vertical={false} />
-            <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-            <Tooltip {...dashTooltipStyle} formatter={(v) => [`$${v.toLocaleString()}`, 'Revenue']} />
-            <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fill="url(#gradRevenue)" dot={false} activeDot={{ r: 5, fill: '#10b981' }} />
-          </AreaChart>
-        </ResponsiveContainer>
+        <div className="db-chart-wrapper">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={salesData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+              <defs><linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0.02} /></linearGradient></defs>
+              <CartesianGrid stroke="#f0f0f5" vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+              <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} width={45} />
+              <Tooltip {...dashTooltipStyle} formatter={(v) => [`$${v.toLocaleString()}`, 'Revenue']} />
+              <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fill="url(#gradRevenue)" dot={false} activeDot={{ r: 5, fill: '#10b981' }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* ── Bottom 2-col ── */}
@@ -425,19 +432,21 @@ const Dashboard = () => {
             <div><h2 className="db-panel-title">Recent Orders</h2><p className="db-panel-subtitle">Last 6 transactions</p></div>
             <button className="db-view-all-btn" id="view-all-orders-btn">View all →</button>
           </div>
-          <div className="db-orders-table">
-            <div className="db-table-head"><span>Order ID</span><span>Customer</span><span>Status</span><span className="align-right">Amount</span></div>
-            {recentOrders.map((order) => {
-              const sc = STATUS_COLOR[order.status] || {};
-              return (
-                <div key={order.id} className="db-table-row">
-                  <span className="db-order-id">{order.id}</span>
-                  <span className="db-customer"><div className="db-avatar">{order.avatar}</div>{order.customer}</span>
-                  <span><span className="db-status-badge" style={{ background: sc.bg, color: sc.text }}>{order.status}</span></span>
-                  <span className="db-amount">{order.amount}</span>
-                </div>
-              );
-            })}
+          <div className="db-orders-table-wrapper">
+            <div className="db-orders-table">
+              <div className="db-table-head"><span>Order ID</span><span>Customer</span><span>Status</span><span className="align-right">Amount</span></div>
+              {recentOrders.map((order) => {
+                const sc = STATUS_COLOR[order.status] || {};
+                return (
+                  <div key={order.id} className="db-table-row">
+                    <span className="db-order-id">{order.id}</span>
+                    <span className="db-customer"><div className="db-avatar">{order.avatar}</div><span className="db-customer-name">{order.customer}</span></span>
+                    <span><span className="db-status-badge" style={{ background: sc.bg, color: sc.text }}>{order.status}</span></span>
+                    <span className="db-amount">{order.amount}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -456,7 +465,7 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: '24px' }}>
+          <div className="db-products-chart-wrapper" style={{ marginTop: '20px' }}>
             <ResponsiveContainer width="100%" height={120}>
               <BarChart data={topProducts.map(p => ({ name: p.name.split(' ')[0], sales: p.sales }))} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                 <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />

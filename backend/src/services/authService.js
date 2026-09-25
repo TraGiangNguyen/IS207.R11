@@ -192,6 +192,75 @@ export const AuthService = {
     }
     return formatUserResponse(user);
   },
+
+  /**
+   * Update Profile Details (fullName, avatarUrl)
+   */
+  async updateProfile(userId, { fullName, avatarUrl }) {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      const error = new Error('Không tìm thấy thông tin người dùng.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const updatedFullName = fullName !== undefined ? fullName : user.full_name;
+    const updatedAvatarUrl = avatarUrl !== undefined ? avatarUrl : user.avatar_url;
+
+    await UserModel.updateProfile(userId, {
+      fullName: updatedFullName,
+      avatarUrl: updatedAvatarUrl,
+    });
+
+    const updatedUser = await UserModel.findById(userId);
+    return formatUserResponse(updatedUser);
+  },
+
+  /**
+   * Change Password with Current Password Verification
+   */
+  async changePassword(userId, { currentPassword, newPassword, confirmPassword }) {
+    if (!currentPassword || !newPassword) {
+      const error = new Error('Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (confirmPassword && newPassword !== confirmPassword) {
+      const error = new Error('Mật khẩu mới và mật khẩu xác nhận không trùng khớp.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (newPassword.length < 6) {
+      const error = new Error('Mật khẩu mới phải có tối thiểu 6 ký tự.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await UserModel.findByIdWithPassword(userId);
+    if (!user) {
+      const error = new Error('Không tìm thấy người dùng.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      const error = new Error('Mật khẩu hiện tại không chính xác.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+    await UserModel.updatePassword(userId, newPasswordHash);
+
+    return {
+      message: 'Đổi mật khẩu thành công!',
+    };
+  },
 };
 
 export default AuthService;

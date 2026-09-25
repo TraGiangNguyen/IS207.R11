@@ -1,22 +1,24 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './modules/auth/LoginPage.jsx';
-import RegisterPage from './modules/auth/RegisterPage.jsx';
-import ForgotPasswordPage from './modules/auth/ForgotPasswordPage.jsx';
-import ResetPasswordPage from './modules/auth/ResetPasswordPage.jsx';
-import ProtectedRoute from './components/common/ProtectedRoute.jsx';
-import MainLayout from './components/Layout/MainLayout.jsx';
-import Dashboard from './modules/dashboard/Dashboard.jsx';
+import { Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./modules/auth/LoginPage.jsx";
+import RegisterPage from "./modules/auth/RegisterPage.jsx";
+import ForgotPasswordPage from "./modules/auth/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "./modules/auth/ResetPasswordPage.jsx";
+import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
+import MainLayout from "./components/Layout/MainLayout.jsx";
+import Dashboard from "./modules/dashboard/Dashboard.jsx";
+import ProductCatalogPage from "./pages/ProductCatalogPage.jsx";
+import ProductDetailPage from "./pages/ProductDetailPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 export function App() {
   return (
     <Routes>
-      {/* Public Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* Protected Routes */}
+      {/* Main Layout chứa chung Sidebar và Header */}
       <Route
         path="/"
         element={
@@ -27,10 +29,12 @@ export function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="products" element={<ProductCatalogPage />} />
+        <Route path="products/:id" element={<ProductDetailPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
 
-      {/* Default Route */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/products" replace />} />
     </Routes>
   );
 }

@@ -72,6 +72,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('beautypals_user');
   };
 
+  const updateProfile = async (profileData) => {
+    const res = await authService.updateProfile(profileData);
+    if (res.success && res.data) {
+      setUser(res.data);
+      localStorage.setItem('beautypals_user', JSON.stringify(res.data));
+      return res;
+    }
+    throw new Error(res.message || 'Cập nhật thông tin thất bại.');
+  };
+
   const value = {
     user,
     token,
@@ -80,6 +90,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

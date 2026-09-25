@@ -135,6 +135,43 @@ export const AuthController = {
       next(error);
     }
   },
+
+  /**
+   * PUT /api/auth/profile
+   */
+  async updateProfile(req, res, next) {
+    try {
+      const { fullName, avatarUrl } = req.body;
+      const updatedUser = await AuthService.updateProfile(req.user.id, { fullName, avatarUrl });
+      return res.status(200).json({
+        success: true,
+        message: 'Cập nhật thông tin hồ sơ thành công!',
+        data: updatedUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * PUT /api/auth/change-password
+   */
+  async changePassword(req, res, next) {
+    try {
+      const { currentPassword, newPassword, confirmPassword } = req.body;
+      const result = await AuthService.changePassword(req.user.id, {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 export default AuthController;

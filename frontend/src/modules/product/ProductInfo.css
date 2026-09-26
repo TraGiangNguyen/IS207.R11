@@ -1,0 +1,103 @@
+.product-container {
+  padding: 48px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.product-header {
+  margin-bottom: 40px;
+}
+
+.product-header h1 {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+}
+
+.product-header .subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.product-table-wrapper {
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.product-table th {
+  padding: 14px 16px;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.product-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.product-table tr:hover td {
+  background: #f9fafb;
+}
+
+.badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.badge.makeup {
+  background: #fce4ec;
+  color: #e91e63;
+}
+
+.badge.skincare {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.stock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.high {
+  background: var(--accent);
+}
+
+.dot.low {
+  background: #ef4444;
+}
+
+.price-col {
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

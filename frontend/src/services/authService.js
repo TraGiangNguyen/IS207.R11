@@ -35,6 +35,20 @@ export const authService = {
   async getProfile() {
     return api.get('/auth/me');
   },
+
+  /**
+   * Cập nhật thông tin hồ sơ
+   */
+  async updateProfile(profileData) {
+    return api.put('/auth/profile', profileData);
+  },
+
+  /**
+   * Đổi mật khẩu
+   */
+  async changePassword(passwordData) {
+    return api.put('/auth/change-password', passwordData);
+  },
 };
 
 export default authService;

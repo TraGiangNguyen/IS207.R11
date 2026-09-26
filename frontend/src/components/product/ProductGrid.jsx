@@ -13,8 +13,8 @@ export default function ProductGrid({ products }) {
   }
 
   return (
-    // SỬ DỤNG AUTO-FILL MINMAX: Không bao giờ để card bị bóp méo nhỏ hơn 240px
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4 sm:gap-6 w-full">
+    // SỬ DỤNG AUTO-FILL MINMAX: Tối ưu hiển thị responsive đa màn hình
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 sm:gap-6 w-full">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

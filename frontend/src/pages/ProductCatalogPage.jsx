@@ -47,8 +47,8 @@ export default function ProductCatalogPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 bg-[#f8f9fa] min-h-screen">
-      {/* NÂNG BREAKPOINT LÊN XL: Tránh tình trạng 2 sidebar ép nát giao diện trên màn nhỏ */}
-      <div className="max-w-[1440px] mx-auto flex flex-col xl:flex-row gap-6 md:gap-8">
+      {/* Giao diện Web (>=lg): Thanh search/filter nằm bên cạnh trái. Giao diện Mobile (<lg): Nằm bên trên */}
+      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
         <SidebarFilter onFilterChange={handleFilterChange} />
 
         <div className="flex-1 w-full min-w-0 space-y-6">

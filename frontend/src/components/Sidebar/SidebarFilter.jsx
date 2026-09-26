@@ -72,7 +72,7 @@ export default function SidebarFilter({ onFilterChange }) {
   }, [searchTerm, selectedCategories, priceRange, selectedRatings]);
 
   return (
-    <div className="w-full lg:w-[300px] flex-shrink-0 bg-[#fafafa] p-6 rounded-2xl border border-gray-100 space-y-8">
+    <div className="w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 bg-[#fafafa] p-6 rounded-2xl border border-gray-100 space-y-8 lg:sticky lg:top-6 self-start">
       {/* CSS tùy chỉnh cho thanh trượt giá dạng kép */}
       <style>{`
         .range-slider input[type="range"] {

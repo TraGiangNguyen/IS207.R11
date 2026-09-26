@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Package,
   User,
+  ShoppingCart,
   ChevronLeft,
   ChevronRight,
   X,
@@ -16,7 +17,8 @@ export default function Sidebar({ isMobileOpen = false, onCloseMobile }) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const displayName = user?.fullName || user?.username || "nguyễn thanh";
+  const isCustomer = user?.role === "customer";
+  const displayName = user?.fullName || user?.username || (isCustomer ? "Khách Hàng" : "Quản trị viên");
   const initialChar = displayName.charAt(0).toUpperCase();
 
   const handleNavClick = () => {
@@ -80,23 +82,26 @@ export default function Sidebar({ isMobileOpen = false, onCloseMobile }) {
 
       {/* Menu Điều hướng */}
       <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-        <NavLink
-          to="/dashboard"
-          onClick={handleNavClick}
-          className={({ isActive }) =>
-            `flex items-center gap-3 py-3 rounded-lg transition-colors text-sm font-medium ${
-              isCollapsed ? "md:justify-center md:px-0 px-4" : "px-4"
-            } ${
-              isActive
-                ? "text-[#008B8B] bg-[#caf8e4]"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-            }`
-          }
-          title="Dashboard"
-        >
-          <LayoutDashboard size={20} className="flex-shrink-0" />
-          <span className={isCollapsed ? "md:hidden" : ""}>Dashboard</span>
-        </NavLink>
+        {/* Chỉ Admin/Staff mới thấy Dashboard */}
+        {!isCustomer && (
+          <NavLink
+            to="/dashboard"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 py-3 rounded-lg transition-colors text-sm font-medium ${
+                isCollapsed ? "md:justify-center md:px-0 px-4" : "px-4"
+              } ${
+                isActive
+                  ? "text-[#008B8B] bg-[#caf8e4]"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+              }`
+            }
+            title="Dashboard"
+          >
+            <LayoutDashboard size={20} className="flex-shrink-0" />
+            <span className={isCollapsed ? "md:hidden" : ""}>Dashboard</span>
+          </NavLink>
+        )}
 
         <NavLink
           to="/products"
@@ -110,11 +115,34 @@ export default function Sidebar({ isMobileOpen = false, onCloseMobile }) {
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
             }`
           }
-          title="Products"
+          title={isCustomer ? "Cửa hàng sản phẩm" : "Quản lý sản phẩm"}
         >
           <Package size={20} className="flex-shrink-0" />
-          <span className={isCollapsed ? "md:hidden" : ""}>Products</span>
+          <span className={isCollapsed ? "md:hidden" : ""}>
+            {isCustomer ? "Cửa hàng" : "Products"}
+          </span>
         </NavLink>
+
+        {/* Khách hàng có lối tắt Giỏ hàng ngay trên Menu */}
+        {isCustomer && (
+          <NavLink
+            to="/cart"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 py-3 rounded-lg transition-colors text-sm font-medium ${
+                isCollapsed ? "md:justify-center md:px-0 px-4" : "px-4"
+              } ${
+                isActive
+                  ? "text-[#008B8B] bg-[#caf8e4]"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+              }`
+            }
+            title="Giỏ hàng"
+          >
+            <ShoppingCart size={20} className="flex-shrink-0" />
+            <span className={isCollapsed ? "md:hidden" : ""}>Giỏ hàng</span>
+          </NavLink>
+        )}
 
         <NavLink
           to="/profile"
@@ -128,7 +156,7 @@ export default function Sidebar({ isMobileOpen = false, onCloseMobile }) {
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
             }`
           }
-          title="Profile"
+          title="Hồ sơ cá nhân"
         >
           <User size={20} className="flex-shrink-0" />
           <span className={isCollapsed ? "md:hidden" : ""}>Profile</span>

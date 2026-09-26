@@ -58,8 +58,11 @@ export const LoginPage = () => {
     setErrorMessage('');
 
     try {
-      await login(formData.account, formData.password);
-      navigate(fromPath, { replace: true });
+      const res = await login(formData.account, formData.password);
+      const user = res?.data?.user;
+      const defaultRedirect = user?.role === 'customer' ? '/products' : '/dashboard';
+      const target = location.state?.from?.pathname || defaultRedirect;
+      navigate(target, { replace: true });
     } catch (err) {
       setErrorMessage(err.message || 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
     } finally {
@@ -67,11 +70,21 @@ export const LoginPage = () => {
     }
   };
 
-  // Quick Demo fill for test convenience
-  const fillDemoAccount = () => {
+  // Quick Demo fills for test convenience
+  const fillAdminAccount = () => {
     setFormData({
       account: 'admin@beautypals.com',
       password: 'Admin@123',
+      rememberMe: true,
+    });
+    setErrors({});
+    setErrorMessage('');
+  };
+
+  const fillCustomerAccount = () => {
+    setFormData({
+      account: 'customer@beautypals.com',
+      password: 'Customer@123',
       rememberMe: true,
     });
     setErrors({});
@@ -148,29 +161,43 @@ export const LoginPage = () => {
         </Button>
 
         {/* Demo Quick Fill Box in Teal & Gold */}
-        <div className="pt-2 border-t border-slate-100">
-          <div className="p-3 bg-beauty-50/60 rounded-2xl border border-beauty-100 flex items-center justify-between">
+        <div className="pt-2 border-t border-slate-100 space-y-2">
+          <div className="p-2.5 bg-beauty-50/60 rounded-xl border border-beauty-100 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-beauty-900 font-medium">
-              <Sparkles className="w-4 h-4 text-gold-500" />
+              <Sparkles className="w-3.5 h-3.5 text-gold-500" />
               <span>Tài khoản Demo Admin:</span>
             </div>
             <button
               type="button"
-              onClick={fillDemoAccount}
+              onClick={fillAdminAccount}
               className="text-xs font-bold text-beauty-700 hover:text-beauty-900 bg-white px-2.5 py-1 rounded-lg border border-beauty-200 shadow-xs transition-all cursor-pointer"
             >
-              Tự điền nhanh
+              Điền Admin
+            </button>
+          </div>
+
+          <div className="p-2.5 bg-emerald-50/60 rounded-xl border border-emerald-100 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-emerald-900 font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Tài khoản Demo Customer:</span>
+            </div>
+            <button
+              type="button"
+              onClick={fillCustomerAccount}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shadow-xs transition-all cursor-pointer"
+            >
+              Điền Customer
             </button>
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-500 pt-2">
+        <p className="text-center text-xs text-slate-500 pt-1">
           Chưa có tài khoản BeautyPals?{' '}
           <Link
             to="/register"
             className="font-bold text-beauty-600 hover:text-beauty-700 transition-colors"
           >
-            Đăng ký tài khoản mới
+            Đăng ký tài khoản mới (Customer)
           </Link>
         </p>
       </form>

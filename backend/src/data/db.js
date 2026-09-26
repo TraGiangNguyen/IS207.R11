@@ -21,7 +21,7 @@ const inMemoryStore = {
   autoId: 1,
 };
 
-// Seed default test user in in-memory store
+// Seed default test users in in-memory store
 (async () => {
   const defaultHash = await bcrypt.hash('Admin@123', 10);
   inMemoryStore.users.push({
@@ -32,6 +32,21 @@ const inMemoryStore = {
     full_name: 'Quản Trị Viên BeautyPals',
     role: 'admin',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    reset_token: null,
+    reset_token_expires_at: null,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+
+  const customerHash = await bcrypt.hash('Customer@123', 10);
+  inMemoryStore.users.push({
+    id: inMemoryStore.autoId++,
+    username: 'customer',
+    email: 'customer@beautypals.com',
+    password_hash: customerHash,
+    full_name: 'Khách Hàng BeautyPals',
+    role: 'customer',
+    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
     reset_token: null,
     reset_token_expires_at: null,
     created_at: new Date(),

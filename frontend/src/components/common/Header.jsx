@@ -8,12 +8,14 @@ import {
   Bell,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 export default function Header({ onToggleMobileMenu }) {
   const [cartCount, setCartCount] = useState(0);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -39,6 +41,7 @@ export default function Header({ onToggleMobileMenu }) {
 
   const handleLogout = () => {
     setIsProfileOpen(false);
+    logout();
     navigate("/login");
   };
 
@@ -88,16 +91,19 @@ export default function Header({ onToggleMobileMenu }) {
             className="flex items-center gap-3 p-1.5 pr-2 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all focus:outline-none"
           >
             <img
-              src="https://ui-avatars.com/api/?name=Admin&background=008B8B&color=fff&rounded=true&bold=true"
+              src={
+                user?.avatarUrl ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || "User")}&background=008B8B&color=fff&rounded=true&bold=true`
+              }
               alt="Avatar"
-              className="w-9 h-9 rounded-full object-cover shadow-sm"
+              className="w-9 h-9 rounded-full object-cover shadow-sm border border-teal-100"
             />
             <div className="hidden md:flex flex-col items-start">
               <span className="text-sm font-bold text-gray-800 leading-none mb-1">
-                Quản trị viên
+                {user?.fullName || (user?.role === "customer" ? "Khách hàng" : "Quản trị viên")}
               </span>
               <span className="text-[11px] text-gray-500 leading-none">
-                admin@sellzy.com
+                {user?.role === "customer" ? "Tài khoản Khách hàng" : user?.email || "admin@beautypals.com"}
               </span>
             </div>
             <ChevronDown
@@ -109,8 +115,10 @@ export default function Header({ onToggleMobileMenu }) {
           {isProfileOpen && (
             <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 origin-top-right animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-3 border-b border-gray-50 md:hidden">
-                <p className="text-sm font-bold text-gray-800">Quản trị viên</p>
-                <p className="text-xs text-gray-500 mt-0.5">admin@sellzy.com</p>
+                <p className="text-sm font-bold text-gray-800">
+                  {user?.fullName || (user?.role === "customer" ? "Khách hàng" : "Quản trị viên")}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">{user?.email || "customer@beautypals.com"}</p>
               </div>
 
               <div className="py-1">

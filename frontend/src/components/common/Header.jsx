@@ -15,9 +15,6 @@ export default function Header({ onToggleMobileMenu }) {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // ==========================
-  // 1. LOGIC ĐỒNG BỘ GIỎ HÀNG
-  // ==========================
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -30,11 +27,7 @@ export default function Header({ onToggleMobileMenu }) {
     return () => window.removeEventListener("cartUpdated", updateCartCount);
   }, []);
 
-  // ==========================
-  // 2. LOGIC DROPDOWN PROFILE
-  // ==========================
   useEffect(() => {
-    // Tự động đóng menu khi click ra ngoài vùng Dropdown
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
@@ -45,17 +38,13 @@ export default function Header({ onToggleMobileMenu }) {
   }, []);
 
   const handleLogout = () => {
-    // Xóa thông tin xác thực (token, user info) khỏi localStorage nếu có
-    // localStorage.removeItem("token");
-    // localStorage.removeItem("user");
-
     setIsProfileOpen(false);
     navigate("/login");
   };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 py-3 px-6 flex justify-between items-center sticky top-0 z-40 h-[72px]">
-      {/* ================= CỤM TRÁI: LOGO & MENU ================= */}
+      {/* ================= CỤM TRÁI: CHỈ CÒN NÚT MENU MOBILE ================= */}
       <div className="flex items-center gap-4">
         {/* Nút Hamburger (Chỉ hiện trên Mobile) */}
         <button
@@ -65,18 +54,11 @@ export default function Header({ onToggleMobileMenu }) {
           <Menu size={24} />
         </button>
 
-        {/* Logo Sellzy */}
-        <h1
-          className="text-2xl font-bold text-[#008B8B] cursor-pointer hidden md:block tracking-tight"
-          onClick={() => navigate("/products")}
-        >
-          Sellzy
-        </h1>
+        {/* ĐÃ XÓA CHỮ "Sellzy" Ở ĐÂY */}
       </div>
 
       {/* ================= CỤM PHẢI: ACTIONS & PROFILE ================= */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Nút Giỏ Hàng (Bám sát thiết kế badge đỏ) */}
         <div
           className="relative p-2 text-gray-600 hover:bg-gray-50 rounded-full cursor-pointer transition-colors"
           onClick={() => navigate("/cart")}
@@ -90,7 +72,6 @@ export default function Header({ onToggleMobileMenu }) {
           )}
         </div>
 
-        {/* Nút Thông báo (Bell) - Thêm vào cho chuẩn form thực tế */}
         <div
           className="relative p-2 text-gray-600 hover:bg-gray-50 rounded-full cursor-pointer transition-colors hidden sm:block"
           title="Thông báo"
@@ -99,22 +80,18 @@ export default function Header({ onToggleMobileMenu }) {
           <span className="absolute top-1.5 right-1.5 bg-[#008B8B] w-2.5 h-2.5 rounded-full border-2 border-white"></span>
         </div>
 
-        {/* Đường kẻ dọc phân cách */}
         <div className="hidden sm:block w-px h-8 bg-gray-200 mx-2"></div>
 
-        {/* ================= DROPDOWN PROFILE ================= */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="flex items-center gap-3 p-1.5 pr-2 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all focus:outline-none"
           >
-            {/* Avatar */}
             <img
               src="https://ui-avatars.com/api/?name=Admin&background=008B8B&color=fff&rounded=true&bold=true"
               alt="Avatar"
               className="w-9 h-9 rounded-full object-cover shadow-sm"
             />
-            {/* Tên & Email (Ẩn trên mobile) */}
             <div className="hidden md:flex flex-col items-start">
               <span className="text-sm font-bold text-gray-800 leading-none mb-1">
                 Quản trị viên
@@ -123,23 +100,19 @@ export default function Header({ onToggleMobileMenu }) {
                 admin@sellzy.com
               </span>
             </div>
-            {/* Icon mũi tên xoay */}
             <ChevronDown
               size={16}
               className={`text-gray-400 hidden md:block transition-transform duration-200 ${isProfileOpen ? "rotate-180" : ""}`}
             />
           </button>
 
-          {/* Menu thả xuống */}
           {isProfileOpen && (
             <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 origin-top-right animate-in fade-in slide-in-from-top-2 duration-200">
-              {/* Hiển thị tên trên mobile khi menu mở */}
               <div className="px-4 py-3 border-b border-gray-50 md:hidden">
                 <p className="text-sm font-bold text-gray-800">Quản trị viên</p>
                 <p className="text-xs text-gray-500 mt-0.5">admin@sellzy.com</p>
               </div>
 
-              {/* Nhóm chức năng */}
               <div className="py-1">
                 <button
                   onClick={() => {

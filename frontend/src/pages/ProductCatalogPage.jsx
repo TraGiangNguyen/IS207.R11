@@ -13,17 +13,13 @@ export default function ProductCatalogPage() {
   }, []);
 
   const handleFilterChange = (filters) => {
-    // Sửa lỗi mất dữ liệu: Luôn lấy từ mảng gốc mockProducts
     let result = [...mockProducts];
 
-    // 1. Search
     if (filters.searchTerm) {
       result = result.filter((p) =>
         p.name.toLowerCase().includes(filters.searchTerm.toLowerCase()),
       );
     }
-
-    // 2. Price Range
     if (filters.priceRange) {
       result = result.filter(
         (p) =>
@@ -31,13 +27,9 @@ export default function ProductCatalogPage() {
           p.price <= filters.priceRange.max,
       );
     }
-
-    // 3. Categories
     if (filters.categories && filters.categories.length > 0) {
       result = result.filter((p) => filters.categories.includes(p.category));
     }
-
-    // 4. Rating
     if (filters.ratings && filters.ratings.length > 0) {
       result = result.filter((p) => filters.ratings.includes(p.rating));
     }
@@ -54,11 +46,12 @@ export default function ProductCatalogPage() {
   }
 
   return (
-    <div className="p-8 bg-[#f8f9fa] min-h-screen">
-      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-8">
+    <div className="p-4 md:p-6 lg:p-8 bg-[#f8f9fa] min-h-screen">
+      {/* NÂNG BREAKPOINT LÊN XL: Tránh tình trạng 2 sidebar ép nát giao diện trên màn nhỏ */}
+      <div className="max-w-[1440px] mx-auto flex flex-col xl:flex-row gap-6 md:gap-8">
         <SidebarFilter onFilterChange={handleFilterChange} />
 
-        <div className="flex-1 w-full space-y-6">
+        <div className="flex-1 w-full min-w-0 space-y-6">
           <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between border border-gray-100">
             <span className="text-gray-600 font-medium">
               Showing {filteredProducts.length} results

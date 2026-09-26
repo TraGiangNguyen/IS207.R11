@@ -15,6 +15,8 @@ export default function ProfilePage() {
 
   // UI status states
   const [showAvatarInput, setShowAvatarInput] = useState(false);
+  const [originalAvatarUrl, setOriginalAvatarUrl] = useState("");
+  const [showPasswordExit, setShowPasswordExit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
@@ -23,8 +25,27 @@ export default function ProfilePage() {
     if (user) {
       setFullName(user.fullName || "");
       setAvatarUrl(user.avatarUrl || "");
+      setOriginalAvatarUrl(user.avatarUrl || "");
     }
   }, [user]);
+
+  const handleAvatarToggle = () => {
+    if (showAvatarInput) {
+      setAvatarUrl(originalAvatarUrl);
+      setShowAvatarInput(false);
+      return;
+    }
+
+    setOriginalAvatarUrl(avatarUrl);
+    setShowAvatarInput(true);
+  };
+
+  const handlePasswordExit = () => {
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowPasswordExit(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,7 +162,7 @@ export default function ProfilePage() {
               </div>
               <button
                 type="button"
-                onClick={() => setShowAvatarInput(!showAvatarInput)}
+                onClick={handleAvatarToggle}
                 className="absolute bottom-1 right-1 p-2 bg-[#008B8B] text-white rounded-full shadow-lg hover:bg-[#007373] transition-colors"
                 title="Change Avatar URL"
               >
@@ -187,9 +208,21 @@ export default function ProfilePage() {
               {/* URL Avatar Toggle Input */}
               {showAvatarInput && (
                 <div className="mt-4 p-3 bg-teal-50 border border-teal-100 rounded-xl">
-                  <label className="block text-xs font-medium text-[#008B8B] mb-1">
-                    New Avatar Image URL:
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <label className="block text-xs font-medium text-[#008B8B]">
+                      New Avatar Image URL:
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAvatarUrl(originalAvatarUrl);
+                        setShowAvatarInput(false);
+                      }}
+                      className="px-2.5 py-1 text-[10px] font-semibold text-[#008B8B] bg-white border border-[#008B8B] rounded-md hover:bg-[#008B8B] hover:text-white transition-colors"
+                    >
+                      Exit
+                    </button>
+                  </div>
                   <input
                     type="url"
                     value={avatarUrl}
@@ -227,6 +260,7 @@ export default function ProfilePage() {
                   <input
                     type="password"
                     value={oldPassword}
+                    onFocus={() => setShowPasswordExit(true)}
                     onChange={(e) => setOldPassword(e.target.value)}
                     placeholder="Enter current password"
                     className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008B8B] focus:border-transparent transition-all text-sm"
@@ -244,6 +278,7 @@ export default function ProfilePage() {
                   <input
                     type="password"
                     value={newPassword}
+                    onFocus={() => setShowPasswordExit(true)}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Minimum 6 characters"
                     className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008B8B] focus:border-transparent transition-all text-sm"
@@ -261,6 +296,7 @@ export default function ProfilePage() {
                   <input
                     type="password"
                     value={confirmPassword}
+                    onFocus={() => setShowPasswordExit(true)}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter new password"
                     className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008B8B] focus:border-transparent transition-all text-sm"
@@ -271,7 +307,17 @@ export default function ProfilePage() {
           </div>
 
           {/* Confirm Button */}
-          <div className="mt-8 pt-4 border-t border-gray-100 flex justify-end">
+          <div className="mt-8 pt-4 border-t border-gray-100 flex justify-end gap-3">
+            {showPasswordExit && (
+              <button
+                type="button"
+                onClick={handlePasswordExit}
+                className="px-4 py-3 border border-[#008B8B] text-[#008B8B] bg-white hover:bg-[#008B8B] hover:text-white font-semibold rounded-xl shadow-sm transition-all text-sm"
+              >
+                Exit
+              </button>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting}

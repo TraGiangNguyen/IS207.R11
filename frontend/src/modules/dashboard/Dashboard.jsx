@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, LineChart, Line,
@@ -131,20 +131,44 @@ const Dashboard = () => {
     if (!result.ok) { showToast('error', result.msg); return; }
     setUploading(true);
     Papa.parse(selectedFile, {
-      header: true, skipEmptyLines: true,
+      header: true,
+      skipEmptyLines: true,
+      dynamicTyping: true,
       complete: (parsed) => {
         const cols = parsed.meta.fields || [];
-        setCsvColumns(cols); setCsvData(parsed.data);
-        setXAxis(cols[0] || ''); setYAxes(cols.length > 1 ? [cols[1]] : []);
-        setUploading(false); showToast('success', result.msg);
+        setCsvColumns(cols);
+        setCsvData(parsed.data || []);
+        setXAxis(cols[0] || '');
+        setYAxes(cols.length > 1 ? [cols[1]] : []);
+        setUploading(false);
+        showToast('success', result.msg);
         setModalStep(2);
       },
-      error: () => { setUploading(false); showToast('error', 'Failed to parse CSV file.'); },
+      error: () => {
+        setUploading(false);
+        showToast('error', 'Failed to parse CSV file.');
+      },
     });
   };
 
   /* Y-axis toggle */
   const toggleYAxis = (col) => setYAxes((prev) => prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]);
+
+  /* Clean and prepare numeric data for charts */
+  const processedData = useMemo(() => {
+    if (!csvData || !csvData.length) return [];
+    return csvData.map((row) => {
+      const cleanRow = { ...row };
+      yAxes.forEach((col) => {
+        if (cleanRow[col] !== undefined && cleanRow[col] !== null) {
+          const valStr = String(cleanRow[col]).trim().replace(/,/g, '');
+          const num = parseFloat(valStr);
+          cleanRow[col] = isNaN(num) ? 0 : num;
+        }
+      });
+      return cleanRow;
+    });
+  }, [csvData, yAxes]);
 
   /* download chart */
   const handleDownloadChart = async () => {
@@ -156,36 +180,124 @@ const Dashboard = () => {
     link.click();
   };
 
+  const containerRef = useRef(null);
+
+  // Auto-resize Recharts when dashboard container or sidebar changes width
+  useEffect(() => {
+    let rafId = null;
+    const triggerResize = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+    };
+
+    const ro = new ResizeObserver(triggerResize);
+    if (containerRef.current) ro.observe(containerRef.current);
+
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  // Force Recharts to recalculate its width when entering step 3 (modal expands to wide preview)
+  useEffect(() => {
+    if (modalStep === 3) {
+      const timers = [
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50),
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 150),
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 300),
+      ];
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [modalStep]);
+
   /* render dynamic chart */
   const renderModalChart = () => {
-    if (!xAxis || yAxes.length === 0) return null;
-    const cp = { data: csvData, margin: { top: 20, right: 30, left: 0, bottom: 0 } };
+    if (!xAxis || yAxes.length === 0 || !processedData.length) return null;
+    const cp = { data: processedData, margin: { top: 25, right: 30, left: 15, bottom: 45 } };
     const gs = { stroke: '#f0f0f5', vertical: false };
-    const as = { stroke: '#d1d5db', tick: { fill: '#6b7280', fontSize: 12 }, axisLine: false, tickLine: false };
-    const ts = { contentStyle: { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', fontSize: '13px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }, itemStyle: { color: '#10b981' } };
+    const asX = {
+      stroke: '#d1d5db',
+      tick: { fill: '#6b7280', fontSize: 11 },
+      axisLine: false,
+      tickLine: false,
+      interval: 'preserveStartEnd',
+      angle: -25,
+      textAnchor: 'end',
+      height: 48,
+    };
+    const asY = {
+      stroke: '#d1d5db',
+      tick: { fill: '#6b7280', fontSize: 12 },
+      axisLine: false,
+      tickLine: false,
+      width: 55,
+      domain: [0, (dataMax) => (dataMax > 0 ? Math.ceil(dataMax * 1.15) : 'auto')],
+    };
+    const ts = {
+      contentStyle: { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', fontSize: '13px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' },
+      itemStyle: { color: '#10b981' }
+    };
 
     if (chartType === 'pie') {
-      const pd = csvData.map((r) => ({ name: r[xAxis], value: parseFloat(r[yAxes[0]]) || 0 }));
-      return (<PieChart><Pie data={pd} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={130} innerRadius={0} label>{pd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}</Pie><Tooltip {...ts} /><Legend /></PieChart>);
+      const pd = processedData.map((r) => ({ name: String(r[xAxis] ?? ''), value: parseFloat(r[yAxes[0]]) || 0 }));
+      return (
+        <PieChart>
+          <Pie data={pd} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius="75%" innerRadius={0} label>
+            {pd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+          </Pie>
+          <Tooltip {...ts} />
+          <Legend wrapperStyle={{ color: '#6b7280', paddingTop: '10px' }} />
+        </PieChart>
+      );
     }
     if (chartType === 'scatter') {
-      return (<ScatterChart {...cp}><CartesianGrid {...gs} /><XAxis dataKey={xAxis} name={xAxis} {...as} /><YAxis dataKey={yAxes[0]} name={yAxes[0]} {...as} /><Tooltip cursor={{ strokeDasharray: '3 3' }} {...ts} /><Scatter data={csvData} fill="#10b981" /></ScatterChart>);
+      return (
+        <ScatterChart {...cp}>
+          <CartesianGrid {...gs} />
+          <XAxis dataKey={xAxis} name={xAxis} {...asX} />
+          <YAxis dataKey={yAxes[0]} name={yAxes[0]} {...asY} />
+          <Tooltip cursor={{ strokeDasharray: '3 3' }} {...ts} />
+          <Scatter data={processedData} fill="#10b981" />
+        </ScatterChart>
+      );
     }
 
     const srs = {
-      bar:  (c, i) => <Bar key={c} dataKey={c} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[6, 6, 0, 0]} />,
+      bar:  (c, i) => <Bar key={c} dataKey={c} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[6, 6, 0, 0]} maxBarSize={56} />,
       line: (c, i) => <Line key={c} type="monotone" dataKey={c} stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2.5} dot={{ r: 4, fill: '#fff', strokeWidth: 2 }} />,
-      area: (c, i) => (<React.Fragment key={c}><defs><linearGradient id={`mg-${c}`} x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.35} /><stop offset="95%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey={c} stroke={CHART_COLORS[i % CHART_COLORS.length]} fill={`url(#mg-${c})`} strokeWidth={2.5} /></React.Fragment>),
+      area: (c, i) => (
+        <React.Fragment key={c}>
+          <defs>
+            <linearGradient id={`mg-${c}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.35} />
+              <stop offset="95%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <Area type="monotone" dataKey={c} stroke={CHART_COLORS[i % CHART_COLORS.length]} fill={`url(#mg-${c})`} strokeWidth={2.5} />
+        </React.Fragment>
+      ),
     };
     const Comp = { bar: BarChart, line: LineChart, area: AreaChart }[chartType];
-    return (<Comp {...cp}><CartesianGrid {...gs} /><XAxis dataKey={xAxis} {...as} /><YAxis {...as} /><Tooltip {...ts} /><Legend wrapperStyle={{ color: '#6b7280', paddingTop: '12px' }} />{yAxes.map((c, i) => srs[chartType](c, i))}</Comp>);
+    return (
+      <Comp {...cp}>
+        <CartesianGrid {...gs} />
+        <XAxis dataKey={xAxis} {...asX} />
+        <YAxis {...asY} />
+        <Tooltip {...ts} />
+        <Legend wrapperStyle={{ color: '#6b7280', paddingTop: '8px' }} />
+        {yAxes.map((c, i) => srs[chartType](c, i))}
+      </Comp>
+    );
   };
 
   /* ═══════════════════════════════════════════════════════════
      RENDER
      ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="db-container">
+    <div className="db-container" ref={containerRef}>
 
       {/* ── Toast ── */}
       {toast && (
@@ -246,7 +358,7 @@ const Dashboard = () => {
               ))}
             </div>
 
-            <div className="db-modal-body">
+            <div className={`db-modal-body ${modalStep >= 3 ? 'db-modal-body--preview' : ''}`}>
 
             {/* ═══ STEP 1: Upload ═══ */}
             {modalStep === 1 && (
@@ -348,7 +460,7 @@ const Dashboard = () => {
               <>
                 <div className="db-modal-chart-preview" ref={chartRef}>
                   <div className="db-modal-chart-preview-container">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" debounce={30}>
                       {renderModalChart()}
                     </ResponsiveContainer>
                   </div>
@@ -411,7 +523,7 @@ const Dashboard = () => {
           <div className="db-chart-legend"><span className="db-legend-dot" style={{ background: '#10b981' }}></span>Revenue</div>
         </div>
         <div className="db-chart-wrapper">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" debounce={30}>
             <AreaChart data={salesData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
               <defs><linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0.02} /></linearGradient></defs>
               <CartesianGrid stroke="#f0f0f5" vertical={false} />

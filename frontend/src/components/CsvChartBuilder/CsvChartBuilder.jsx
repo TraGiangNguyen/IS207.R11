@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Papa from 'papaparse';
 import {
   BarChart, Bar, LineChart, Line, AreaChart, Area,
@@ -136,6 +136,17 @@ const CsvChartBuilder = () => {
     setChartTitle('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  useEffect(() => {
+    if (step === 3) {
+      const timers = [
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50),
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 150),
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 300),
+      ];
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [step]);
 
   const renderChart = () => {
     if (!xAxis || yAxes.length === 0) return null;

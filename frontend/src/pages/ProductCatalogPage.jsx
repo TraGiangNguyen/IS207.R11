@@ -3,13 +3,26 @@ import SidebarFilter from "../components/Sidebar/SidebarFilter";
 import ProductCard from "../components/product/ProductCard";
 import mockProducts from "../data/mockProducts";
 
+// Merge mockProducts với overrides của admin (nếu có) từ localStorage
+function getMergedProducts() {
+  try {
+    const overrides = JSON.parse(localStorage.getItem("productOverrides")) || {};
+    return mockProducts.map((p) =>
+      overrides[p.id] ? { ...p, ...overrides[p.id] } : p
+    );
+  } catch {
+    return mockProducts;
+  }
+}
+
 export default function ProductCatalogPage() {
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+  const [filteredProducts, setFilteredProducts] = useState(() => getMergedProducts());
 
   const handleFilterChange = (filters) => {
     const { searchTerm, categories, priceRange, ratings } = filters;
-
-    const result = mockProducts.filter((product) => {
+    // Lọc trên danh sách đã merge override
+    const merged = getMergedProducts();
+    const result = merged.filter((product) => {
       const matchSearch = product.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());

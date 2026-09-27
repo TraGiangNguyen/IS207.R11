@@ -14,10 +14,17 @@ import MainLayout from "./components/Layout/MainLayout.jsx";
 import Dashboard from "./modules/dashboard/Dashboard.jsx";
 import ProductCatalogPage from "./pages/ProductCatalogPage.jsx";
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
+import AdminProductDetailPage from "./pages/AdminProductDetailPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import CartPage from "./pages/CartPage.jsx";
-
 import { useAuth } from "./context/AuthContext.jsx";
+
+// Component phân biệt giao diện chi tiết sản phẩm theo role
+function ProductDetailRoute() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "staff";
+  return isAdmin ? <AdminProductDetailPage /> : <ProductDetailPage />;
+}
 
 // Component điều hướng mặc định theo Role
 function IndexRoute() {
@@ -63,8 +70,8 @@ export function App() {
 
         <Route path="products" element={<ProductCatalogPage />} />
 
-        {/* ĐÃ FIX: Đổi 'products/:id' thành 'product/:id' để khớp với thẻ Link trong ProductCard */}
-        <Route path="product/:id" element={<ProductDetailPage />} />
+        {/* Route chi tiết sản phẩm: admin/staff → AdminProductDetailPage, customer → ProductDetailPage */}
+        <Route path="product/:id" element={<ProductDetailRoute />} />
 
         <Route path="cart" element={<CartPage />} />
         <Route path="profile" element={<ProfilePage />} />

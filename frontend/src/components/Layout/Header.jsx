@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { ShoppingCart, Menu, User, LogOut, ChevronDown } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom"; // Thêm useLocation
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 export default function Header({ onToggleMobileMenu }) {
   const [cartCount, setCartCount] = useState(0);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const location = useLocation(); // Dùng để ép update khi chuyển trang
+  const location = useLocation();
+  const { user, logout } = useAuth();
 
   // ==========================
-  // HÀM TÍNH SỐ LƯỢNG GIỎ HÀNG (CỘNG DỒN TẤT CẢ SẢN PHẨM)
+  // HÀM TÍNH SỐ LƯỢNG GIỏ HÀNG
   // ==========================
   const updateCartCount = () => {
     try {
@@ -27,30 +29,19 @@ export default function Header({ onToggleMobileMenu }) {
   };
 
   // ==========================
-  // LẮNG NGHE SỰ KIỆN
+  // LỬNG NGHE SỰ KIỆN
   // ==========================
   useEffect(() => {
-    // 1. Chạy ngay khi component mount
     updateCartCount();
-
-    // 2. Ép chạy lại mỗi khi đường dẫn URL thay đổi (VD: từ Home -> Cart)
-    updateCartCount();
-
-    // 3. Lắng nghe event tuỳ chỉnh từ ProductCard (bấm add to cart)
     window.addEventListener("cartUpdated", updateCartCount);
-
-    // 4. Lắng nghe thay đổi Storage từ tab khác
     window.addEventListener("storage", updateCartCount);
-
-    // 5. Polling 500ms một lần (Bảo đảm tuyệt đối không bao giờ trượt số)
     const interval = setInterval(updateCartCount, 500);
-
     return () => {
       window.removeEventListener("cartUpdated", updateCartCount);
       window.removeEventListener("storage", updateCartCount);
       clearInterval(interval);
     };
-  }, [location.pathname]); // Hook sẽ kích hoạt lại khi chuyển trang
+  }, [location.pathname]);
 
   // ==========================
   // ĐÓNG MENU PROFILE KHI CLICK RA NGOÀI
@@ -67,8 +58,15 @@ export default function Header({ onToggleMobileMenu }) {
 
   const handleLogout = () => {
     setIsProfileOpen(false);
+    logout(); // gọi logout từ AuthContext để xóa token + user
     navigate("/login");
   };
+
+  // Lấy thông tin hiển thị từ user trong AuthContext
+  const displayName = user?.name || user?.fullName || user?.username || "Người dùng";
+  const displayEmail = user?.email || "";
+  const displayRole = user?.role === "admin" ? "Quản trị viên" : user?.role === "staff" ? "Nhân viên" : "Khách hàng";
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=008B8B&color=fff`;
 
   return (
     <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-40 h-[72px]">
@@ -91,16 +89,13 @@ export default function Header({ onToggleMobileMenu }) {
 
       {/* ================= RIGHT ================= */}
       <div className="flex items-center gap-4">
-        {/* === GIỎ HÀNG (ĐÃ FIX UI CHẤM ĐỎ) === */}
+        {/* === GIỏ HÀNG === */}
         <div
           onClick={() => navigate("/cart")}
           className="relative cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
           title="Xem giỏ hàng"
         >
-          {/* Đảm bảo icon có z-index thấp hơn chấm đỏ */}
           <ShoppingCart size={26} className="text-gray-700 relative z-10" />
-
-          {/* CHẤM ĐỎ - Chỉnh lại padding, font-size và z-index để luôn nổi */}
           {cartCount > 0 && (
             <span className="absolute top-0 right-0 z-50 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-[12px] font-bold min-w-[20px] h-[20px] px-1.5 rounded-full flex items-center justify-center border-2 border-white shadow-md animate-bounce">
               {cartCount > 99 ? "99+" : cartCount}
@@ -110,30 +105,34 @@ export default function Header({ onToggleMobileMenu }) {
 
         <div className="hidden sm:block w-px h-8 bg-gray-200" />
 
-        {/* === PROFILE === */}
+        {/* === PROFILE — hiển thị đúng user đang đăng nhập === */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="flex items-center gap-2 p-1 hover:opacity-80 transition-opacity"
           >
             <img
-              src="https://ui-avatars.com/api/?name=Admin&background=008B8B&color=fff"
+              src={avatarUrl}
               alt="Avatar"
               className="w-9 h-9 rounded-full"
             />
             <div className="hidden md:block text-left">
               <p className="text-sm font-semibold text-gray-900">
-                Quản Trị Viên BeautyPals
+                {displayName}
               </p>
-              <p className="text-xs text-gray-500">admin@beautypals.com</p>
+              <p className="text-xs text-gray-500">{displayEmail || displayRole}</p>
             </div>
             <ChevronDown size={16} className="text-gray-500" />
           </button>
 
           {isProfileOpen && (
             <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
+              <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{displayRole}</p>
+                <p className="text-sm font-medium text-gray-800 truncate">{displayName}</p>
+              </div>
               <button
-                onClick={() => navigate("/profile")}
+                onClick={() => { navigate("/profile"); setIsProfileOpen(false); }}
                 className="w-full px-4 py-2 flex gap-3 hover:bg-gray-50 text-gray-700 items-center transition-colors"
               >
                 <User size={18} />

@@ -120,51 +120,56 @@ export const AuthService = {
   },
 
   /**
-   * Generate Reset Password Token
+   * Generate Reset Password Token (Demo OTP Mode)
    */
   async requestPasswordReset(email) {
     const user = await UserModel.findByEmail(email);
     if (!user) {
-      // Don't leak user existence for security, or return standard response
-      return {
-        message: 'Nếu email tồn tại trong hệ thống, hướng dẫn đặt lại mật khẩu đã được gửi.',
-        resetToken: null,
-      };
+      const error = new Error('Email này chưa được đăng ký trong hệ thống. Vui lòng kiểm tra lại địa chỉ email hoặc đăng ký tài khoản mới.');
+      error.statusCode = 404;
+      throw error;
     }
 
-    // Generate random token and expiry (1 hour)
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    // Generate 6-digit OTP code for demo & testing
+    const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-    await UserModel.setResetToken(user.id, resetToken, expiresAt);
+    await UserModel.setResetToken(user.id, resetOtp, expiresAt);
+
+    console.log(`\n========================================`);
+    console.log(`[DEMO AUTH] MÃ OTP QUÊN MẬT KHẨU CHO ${user.email}: ${resetOtp}`);
+    console.log(`========================================\n`);
 
     return {
-      message: 'Yêu cầu đặt lại mật khẩu thành công. Vui lòng sử dụng mã/token được cấp để đổi mật khẩu.',
-      resetToken, // Returned for dev/test flow
+      message: 'Mã xác thực OTP (Chế độ Demo) đã được tạo thành công.',
+      resetToken: resetOtp,
+      otp: resetOtp,
       email: user.email,
     };
   },
 
   /**
-   * Reset Password with Token
+   * Reset Password with Token / OTP
    */
   async resetPassword({ token, newPassword }) {
-    if (!token || !newPassword) {
-      const error = new Error('Token và mật khẩu mới không được để trống.');
+    const cleanToken = token ? String(token).trim() : '';
+
+    if (!cleanToken || !newPassword) {
+      const error = new Error('Mã OTP xác thực và mật khẩu mới không được để trống.');
       error.statusCode = 400;
       throw error;
     }
 
-    const user = await UserModel.findByResetToken(token);
+    const user = await UserModel.findByResetToken(cleanToken);
     if (!user) {
-      const error = new Error('Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.');
+      const error = new Error('Mã OTP xác nhận không hợp lệ hoặc đã hết hạn.');
       error.statusCode = 400;
       throw error;
     }
 
     // Check token expiry
     if (user.reset_token_expires_at && new Date() > new Date(user.reset_token_expires_at)) {
-      const error = new Error('Mã đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu mã mới.');
+      const error = new Error('Mã OTP xác nhận đã hết hạn. Vui lòng yêu cầu mã mới.');
       error.statusCode = 400;
       throw error;
     }
@@ -176,7 +181,7 @@ export const AuthService = {
     await UserModel.updatePassword(user.id, newPasswordHash);
 
     return {
-      message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.',
+      message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay với mật khẩu mới.',
     };
   },
 

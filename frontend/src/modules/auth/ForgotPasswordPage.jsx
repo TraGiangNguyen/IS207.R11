@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ArrowLeft, KeyRound, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Mail, ArrowLeft, KeyRound, AlertCircle } from 'lucide-react';
 import AuthLayout from './AuthLayout.jsx';
 import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
@@ -12,8 +12,10 @@ export const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [successInfo, setSuccessInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Gợi ý tài khoản demo có sẵn để test nhanh
+  const demoAccounts = ['admin@gmail.com', 'customer@gmail.com', 'admin@beautypals.com'];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,12 +34,17 @@ export const ForgotPasswordPage = () => {
 
     try {
       const res = await authService.forgotPassword(email);
-      setSuccessInfo({
-        message: res.message || 'Yêu cầu đặt lại mật khẩu đã được xử lý.',
-        resetToken: res.data?.resetToken,
-      });
+      const generatedOtp = res.data?.otp || res.data?.resetToken;
+
+      // 🔔 Pop-up thông báo trực tiếp trên trình duyệt (Browser Native Popup Dialog)
+      window.alert(
+        `🔔 [THÔNG BÁO XÁC THỰC OTP DEMO]\n\nMã OTP xác thực đặt lại mật khẩu của bạn là: ${generatedOtp}\n\n(Mã có hiệu lực trong vòng 15 phút. Nhấn OK để tiến hành đặt lại mật khẩu).`
+      );
+
+      // Tự động chuyển ngay sang màn hình Đặt Lại Mật Khẩu
+      navigate(`/reset-password?email=${encodeURIComponent(email.trim())}`);
     } catch (err) {
-      setErrorMessage(err.message || 'Không thể xử lý yêu cầu. Vui lòng thử lại sau.');
+      setErrorMessage(err.message || 'Không tìm thấy tài khoản với email này. Vui lòng kiểm tra lại.');
     } finally {
       setIsLoading(false);
     }
@@ -46,104 +53,77 @@ export const ForgotPasswordPage = () => {
   return (
     <AuthLayout
       title="Quên Mật Khẩu"
-      subtitle="Đừng lo lắng! Hãy nhập email để nhận mã xác thực đặt lại mật khẩu"
+      subtitle="Nhập email để nhận mã xác thực OTP (Demo) đặt lại mật khẩu"
     >
-      {successInfo ? (
-        <div className="space-y-6 text-center animate-fade-in py-2">
-          <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-4.5">
+        {errorMessage && (
+          <Alert
+            type="error"
+            message={errorMessage}
+            onClose={() => setErrorMessage('')}
+          />
+        )}
 
-          <div className="space-y-2">
-            <h3 className="text-lg font-bold text-slate-800">
-              Yêu cầu đã được gửi!
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
-              {successInfo.message}
-            </p>
-          </div>
+        <Input
+          label="Địa chỉ Email đã đăng ký"
+          name="email"
+          type="email"
+          placeholder="nhap-email@example.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError('');
+          }}
+          error={error}
+          icon={Mail}
+          helperText="Nhập email tài khoản để nhận mã xác nhận OTP đặt lại mật khẩu."
+          required
+        />
 
-          {/* Test / Dev Convenience Token Box */}
-          {successInfo.resetToken && (
-            <div className="p-4 bg-beauty-50/70 border border-beauty-200 rounded-2xl text-left space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-beauty-900">
-                <KeyRound className="w-4 h-4 text-beauty-500" />
-                <span>Mã đặt lại mật khẩu (Token):</span>
-              </div>
-              <p className="font-mono text-xs bg-white p-2.5 rounded-xl border border-beauty-200 text-slate-700 break-all select-all">
-                {successInfo.resetToken}
-              </p>
-              <Button
+        {/* Gợi ý tài khoản demo có sẵn */}
+        <div className="p-3 bg-slate-50/90 border border-slate-200 rounded-xl space-y-1.5">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+            <AlertCircle className="w-3.5 h-3.5 text-beauty-500" />
+            <span>Gợi ý tài khoản có sẵn để test nhanh:</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {demoAccounts.map((acc) => (
+              <button
+                key={acc}
                 type="button"
-                variant="primary"
-                size="sm"
-                fullWidth
-                icon={ArrowRight}
-                onClick={() => navigate(`/reset-password?token=${successInfo.resetToken}`)}
+                onClick={() => {
+                  setEmail(acc);
+                  setError('');
+                }}
+                className="px-2.5 py-1 text-xs bg-white hover:bg-beauty-50 text-slate-700 hover:text-beauty-700 rounded-lg border border-slate-200 hover:border-beauty-300 font-mono transition-all cursor-pointer"
               >
-                Tiến hành Đặt lại Mật khẩu ngay
-              </Button>
-            </div>
-          )}
-
-          <div className="pt-2">
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-beauty-600 hover:text-beauty-700"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại Đăng nhập
-            </Link>
+                {acc}
+              </button>
+            ))}
           </div>
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {errorMessage && (
-            <Alert
-              type="error"
-              message={errorMessage}
-              onClose={() => setErrorMessage('')}
-            />
-          )}
 
-          <Input
-            label="Địa chỉ Email đã đăng ký"
-            name="email"
-            type="email"
-            placeholder="nhap-email@example.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (error) setError('');
-            }}
-            error={error}
-            icon={Mail}
-            helperText="Chúng tôi sẽ gửi liên kết và mã xác thực bảo mật tới hòm thư của bạn."
-            required
-          />
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          fullWidth
+          isLoading={isLoading}
+          icon={KeyRound}
+        >
+          Tạo Mã Xác Thực Đặt Lại
+        </Button>
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            isLoading={isLoading}
-            icon={KeyRound}
+        <div className="text-center pt-1.5">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-beauty-600 transition-colors"
           >
-            Gửi Yêu Cầu Đặt Lại
-          </Button>
-
-          <div className="text-center pt-2">
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-beauty-600 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại màn hình Đăng nhập
-            </Link>
-          </div>
-        </form>
-      )}
+            <ArrowLeft className="w-4 h-4" />
+            Quay lại màn hình Đăng nhập
+          </Link>
+        </div>
+      </form>
     </AuthLayout>
   );
 };

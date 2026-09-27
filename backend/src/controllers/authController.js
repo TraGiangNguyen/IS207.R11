@@ -81,6 +81,7 @@ export const AuthController = {
         message: result.message,
         data: {
           resetToken: result.resetToken,
+          otp: result.resetToken,
           email: result.email,
         },
       });

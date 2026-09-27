@@ -1,34 +1,45 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  ShoppingCart,
-  Menu,
-  User,
-  LogOut,
-  ChevronDown,
-  Bell,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { ShoppingCart, Menu, User, LogOut, ChevronDown } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Header({ onToggleMobileMenu }) {
   const [cartCount, setCartCount] = useState(0);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const location = useLocation();
 
+  // Đọc dữ liệu từ LocalStorage
   const updateCartCount = () => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    setCartCount(totalItems);
+    try {
+      const cart = JSON.parse(localStorage.getItem("cartItems")) || [];
+      const total = cart.reduce(
+        (sum, item) => sum + (Number(item.quantity) || 0),
+        0,
+      );
+      setCartCount(total);
+    } catch (error) {
+      console.error("Lỗi đọc giỏ hàng:", error);
+    }
   };
 
+  // Lắng nghe sự kiện
   useEffect(() => {
     updateCartCount();
     window.addEventListener("cartUpdated", updateCartCount);
-    return () => window.removeEventListener("cartUpdated", updateCartCount);
-  }, []);
+    window.addEventListener("storage", updateCartCount);
 
+    // Quét liên tục mỗi 0.5s để chống miss sự kiện
+    const interval = setInterval(updateCartCount, 500);
+
+    return () => {
+      window.removeEventListener("cartUpdated", updateCartCount);
+      window.removeEventListener("storage", updateCartCount);
+      clearInterval(interval);
+    };
+  }, [location.pathname]);
+
+  // Đóng menu profile khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -39,112 +50,77 @@ export default function Header({ onToggleMobileMenu }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    setIsProfileOpen(false);
-    logout();
-    navigate("/login");
-  };
-
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100 py-3 px-6 flex justify-between items-center sticky top-0 z-40 h-[72px]">
-      {/* ================= CỤM TRÁI: CHỈ CÒN NÚT MENU MOBILE ================= */}
+    <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-40 h-[72px]">
+      {/* VÙNG TRÁI: Đã xóa chữ BeautyPals, chỉ giữ lại nút Menu cho Mobile */}
       <div className="flex items-center gap-4">
-        {/* Nút Hamburger (Chỉ hiện trên Mobile) */}
         <button
           onClick={onToggleMobileMenu}
-          className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none"
+          className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
         >
           <Menu size={24} />
         </button>
-
-        {/* ĐÃ XÓA CHỮ "Sellzy" Ở ĐÂY */}
       </div>
 
-      {/* ================= CỤM PHẢI: ACTIONS & PROFILE ================= */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      {/* VÙNG PHẢI: Giỏ hàng và Profile */}
+      <div className="flex items-center gap-6">
+        {/* ICON GIỎ HÀNG */}
         <div
-          className="relative p-2 text-gray-600 hover:bg-gray-50 rounded-full cursor-pointer transition-colors"
           onClick={() => navigate("/cart")}
-          title="Giỏ hàng"
+          className="relative cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center mr-2"
         >
-          <ShoppingCart size={24} />
+          <ShoppingCart size={26} className="text-gray-700 relative z-10" />
+
+          {/* CHỈ HIỂN THỊ CHẤM ĐỎ KHI CÓ SẢN PHẨM (>0) */}
           {cartCount > 0 && (
-            <span className="absolute top-0 right-0 bg-[#ef4444] text-white text-[11px] font-bold w-[22px] h-[22px] flex items-center justify-center rounded-full transform translate-x-1 -translate-y-1 border-2 border-white shadow-sm">
+            <span className="absolute top-0 right-0 z-50 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-[12px] font-bold min-w-[20px] h-[20px] px-1.5 rounded-full flex items-center justify-center border-2 border-white shadow-md">
               {cartCount > 99 ? "99+" : cartCount}
             </span>
           )}
         </div>
 
-        <div
-          className="relative p-2 text-gray-600 hover:bg-gray-50 rounded-full cursor-pointer transition-colors hidden sm:block"
-          title="Thông báo"
-        >
-          <Bell size={24} />
-          <span className="absolute top-1.5 right-1.5 bg-[#008B8B] w-2.5 h-2.5 rounded-full border-2 border-white"></span>
-        </div>
+        <div className="hidden sm:block w-px h-8 bg-gray-200" />
 
-        <div className="hidden sm:block w-px h-8 bg-gray-200 mx-2"></div>
-
+        {/* PROFILE USER */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-3 p-1.5 pr-2 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all focus:outline-none"
+            className="flex items-center gap-3 p-1"
           >
-            <img
-              src={
-                user?.avatarUrl ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || "User")}&background=008B8B&color=fff&rounded=true&bold=true`
-              }
-              alt="Avatar"
-              className="w-9 h-9 rounded-full object-cover shadow-sm border border-teal-100"
-            />
-            <div className="hidden md:flex flex-col items-start">
-              <span className="text-sm font-bold text-gray-800 leading-none mb-1">
-                {user?.fullName || (user?.role === "customer" ? "Khách hàng" : "Quản trị viên")}
-              </span>
-              <span className="text-[11px] text-gray-500 leading-none">
-                {user?.role === "customer" ? "Tài khoản Khách hàng" : user?.email || "admin@beautypals.com"}
-              </span>
+            {/* Avatar chữ AD giống y hệt trong ảnh chụp của bạn */}
+            <div className="w-9 h-9 rounded-full bg-[#008B8B] text-white flex items-center justify-center font-bold text-sm tracking-wide shadow-sm">
+              AD
             </div>
-            <ChevronDown
-              size={16}
-              className={`text-gray-400 hidden md:block transition-transform duration-200 ${isProfileOpen ? "rotate-180" : ""}`}
-            />
+
+            <div className="hidden md:block text-left">
+              <p className="text-sm font-semibold text-gray-900">
+                Quản Trị Viên BeautyPals
+              </p>
+              <p className="text-xs text-gray-500">admin@beautypals.com</p>
+            </div>
+
+            <ChevronDown size={16} className="text-gray-500 ml-1" />
           </button>
 
+          {/* DROPDOWN MENU */}
           {isProfileOpen && (
-            <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 origin-top-right animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="px-4 py-3 border-b border-gray-50 md:hidden">
-                <p className="text-sm font-bold text-gray-800">
-                  {user?.fullName || (user?.role === "customer" ? "Khách hàng" : "Quản trị viên")}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">{user?.email || "customer@beautypals.com"}</p>
-              </div>
-
-              <div className="py-1">
-                <button
-                  onClick={() => {
-                    setIsProfileOpen(false);
-                    navigate("/profile");
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-[#f4f9f9] hover:text-[#008B8B] flex items-center gap-3 transition-colors"
-                >
-                  <User size={18} />
-                  Hồ sơ cá nhân
-                </button>
-              </div>
-
-              <div className="h-px bg-gray-100 my-1"></div>
-
-              <div className="py-1">
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
-                >
-                  <LogOut size={18} />
-                  Đăng xuất
-                </button>
-              </div>
+            <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
+              <button
+                onClick={() => navigate("/profile")}
+                className="w-full px-4 py-2 flex gap-3 hover:bg-gray-50 text-gray-700"
+              >
+                <User size={18} /> Thông tin cá nhân
+              </button>
+              <div className="border-t border-gray-100 my-1"></div>
+              <button
+                onClick={() => {
+                  setIsProfileOpen(false);
+                  navigate("/login");
+                }}
+                className="w-full px-4 py-2 flex gap-3 text-red-600 hover:bg-red-50"
+              >
+                <LogOut size={18} /> Đăng xuất
+              </button>
             </div>
           )}
         </div>

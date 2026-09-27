@@ -7,14 +7,15 @@ export default function SidebarFilter({ onFilterChange }) {
 
   // Khởi tạo state cho thanh trượt giá (Giá tối đa giả định là 150)
   const MAX_PRICE = 150;
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 150 });
   const [selectedRatings, setSelectedRatings] = useState([]);
 
+  // Cập nhật danh mục chuẩn Mỹ phẩm làm đẹp (Beauty & Cosmetics)
   const categories = [
-    { name: "Thermometers", count: 29 },
-    { name: "Oximeters", count: 5 },
-    { name: "BP Monitors", count: 1 },
-    { name: "Personal Care", count: 1 },
+    { name: "Skincare", count: 6 },
+    { name: "Makeup", count: 4 },
+    { name: "Fragrance", count: 3 },
+    { name: "Haircare", count: 3 },
   ];
 
   const ratings = [5, 4, 3, 2, 1];
@@ -141,12 +142,12 @@ export default function SidebarFilter({ onFilterChange }) {
         </div>
       </div>
 
-      {/* 3. Price Range (Đã hoàn thiện chức năng kéo) */}
+      {/* 3. Price Range */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-bold text-gray-900">Price Range</h3>
           <button
-            onClick={() => setPriceRange({ min: 0, max: 100 })}
+            onClick={() => setPriceRange({ min: 0, max: 150 })}
             className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors"
           >
             Reset <RotateCcw size={14} />
@@ -155,7 +156,6 @@ export default function SidebarFilter({ onFilterChange }) {
 
         {/* Khối thanh trượt */}
         <div className="relative h-2 bg-[#d1f0f0] rounded-full mt-4 mb-8 range-slider">
-          {/* Vùng track màu xanh đậm thể hiện khoảng được chọn */}
           <div
             className="absolute h-full bg-[#008B8B] rounded-full pointer-events-none"
             style={{
@@ -164,7 +164,6 @@ export default function SidebarFilter({ onFilterChange }) {
             }}
           ></div>
 
-          {/* Thumb kéo Giá trị nhỏ nhất (Min) */}
           <input
             type="range"
             min="0"
@@ -174,7 +173,6 @@ export default function SidebarFilter({ onFilterChange }) {
             style={{ zIndex: priceRange.min > MAX_PRICE - 10 ? "5" : "3" }}
           />
 
-          {/* Thumb kéo Giá trị lớn nhất (Max) */}
           <input
             type="range"
             min="0"
@@ -251,7 +249,6 @@ export default function SidebarFilter({ onFilterChange }) {
                   ))}
                 </div>
               </div>
-              <span className="text-gray-400 text-sm">(189)</span>
             </label>
           ))}
         </div>

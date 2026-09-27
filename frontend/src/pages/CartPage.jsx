@@ -7,13 +7,15 @@ export default function CartPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    // Đã fix: Đổi "cart" thành "cartItems" để đồng bộ với ProductCard.jsx
+    const storedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
     setCartItems(storedCart);
   }, []);
 
   const updateLocalStorage = (newCart) => {
     setCartItems(newCart);
-    localStorage.setItem("cart", JSON.stringify(newCart));
+    // Đã fix: Đổi "cart" thành "cartItems"
+    localStorage.setItem("cartItems", JSON.stringify(newCart));
     window.dispatchEvent(new Event("cartUpdated"));
   };
 

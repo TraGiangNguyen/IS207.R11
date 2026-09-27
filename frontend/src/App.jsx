@@ -15,14 +15,19 @@ import Dashboard from "./modules/dashboard/Dashboard.jsx";
 import ProductCatalogPage from "./pages/ProductCatalogPage.jsx";
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
-import CartPage from "./pages/CartPage.jsx"; // Bổ sung trang Giỏ hàng
+import CartPage from "./pages/CartPage.jsx";
 
 import { useAuth } from "./context/AuthContext.jsx";
 
 // Component điều hướng mặc định theo Role
 function IndexRoute() {
   const { user } = useAuth();
-  return <Navigate to={user?.role === "customer" ? "/products" : "/dashboard"} replace />;
+  return (
+    <Navigate
+      to={user?.role === "customer" ? "/products" : "/dashboard"}
+      replace
+    />
+  );
 }
 
 export function App() {
@@ -45,7 +50,7 @@ export function App() {
       >
         {/* Điều hướng mặc định: Customer vào /products, Admin vào /dashboard */}
         <Route index element={<IndexRoute />} />
-        
+
         {/* Dashboard chỉ dành cho Admin và Staff */}
         <Route
           path="dashboard"
@@ -55,9 +60,12 @@ export function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route path="products" element={<ProductCatalogPage />} />
-        <Route path="products/:id" element={<ProductDetailPage />} />
+
+        {/* ĐÃ FIX: Đổi 'products/:id' thành 'product/:id' để khớp với thẻ Link trong ProductCard */}
+        <Route path="product/:id" element={<ProductDetailPage />} />
+
         <Route path="cart" element={<CartPage />} />
         <Route path="profile" element={<ProfilePage />} />
       </Route>

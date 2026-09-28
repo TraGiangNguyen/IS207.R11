@@ -17,11 +17,6 @@ import {
   Tag,
   Check,
   X,
-  ShoppingCart,
-  Heart,
-  Minus,
-  Plus,
-  Home
 } from "lucide-react";
 import mockProducts from "../data/mockProducts";
 
@@ -123,7 +118,7 @@ function KpiCard({ icon: Icon, label, value, sub, color = "bg-teal-50", iconColo
 }
 
 /* ─── Main Component ─── */
-export default function ProductDetailPage() {
+export default function AdminProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -141,14 +136,10 @@ export default function ProductDetailPage() {
   });
 
   const [activeTab, setActiveTab] = useState("overview");
-  const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState("30ml");
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [newComment, setNewComment] = useState("");
-  const sizes = ["15ml", "30ml", "50ml", "100ml"];
   const [helpfulMap, setHelpfulMap] = useState({});
   const [toast, setToast] = useState(null);       // { msg, type }
-    // populated on open
+  const [showEdit, setShowEdit] = useState(false);
+  const [editForm, setEditForm] = useState(null);  // populated on open
 
   // Load local comments for this product
   const [localComments, setLocalComments] = useState(() => {
@@ -170,58 +161,6 @@ export default function ProductDetailPage() {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
-  
-  const handleToggleWishlist = () => {
-    if (!product) return;
-    setIsWishlisted(!isWishlisted);
-    showToast(isWishlisted ? "Đã xóa khỏi danh sách yêu thích." : "Đã thêm vào danh sách yêu thích! ♥");
-  };
-
-  const handleAddToCart = () => {
-    if (!product) return;
-    const currentCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-    const existingItemIndex = currentCart.findIndex(
-      (item) => item.id === product.id && item.selectedSize === selectedSize,
-    );
-
-    if (existingItemIndex !== -1) {
-      currentCart[existingItemIndex].quantity += quantity;
-    } else {
-      currentCart.push({
-        ...product,
-        quantity: quantity,
-        selectedSize,
-      });
-    }
-
-    localStorage.setItem("cartItems", JSON.stringify(currentCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-    showToast(`Đã thêm ${quantity} sản phẩm (${selectedSize}) vào giỏ hàng!`);
-  };
-
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    const allComments = JSON.parse(localStorage.getItem("productComments")) || {};
-    const productComments = allComments[id] || [];
-    const commentObj = {
-      id: Date.now(),
-      author: "Bạn", // or getting from AuthContext if we use it
-      avatar: "U",
-      rating: 5,
-      date: new Date().toLocaleDateString("vi-VN"),
-      content: newComment,
-      helpful: 0,
-      verified: true
-    };
-    const updatedProductComments = [commentObj, ...productComments];
-    allComments[id] = updatedProductComments;
-    localStorage.setItem("productComments", JSON.stringify(allComments));
-    setLocalComments(updatedProductComments);
-    setNewComment("");
-    showToast("Đã thêm bình luận!");
-  };
-
-
 
   /* ── Share handler ── */
   const handleShare = async () => {
@@ -371,8 +310,20 @@ export default function ProductDetailPage() {
               <Share2 size={15} />
               Chia sẻ
             </button>
-            
-            
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:border-[#008B8B] hover:text-[#008B8B] transition-colors bg-white"
+            >
+              <Download size={15} />
+              Xuất báo cáo
+            </button>
+            <button
+              onClick={handleOpenEdit}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#008B8B] text-white text-sm font-semibold hover:bg-[#007777] transition-colors shadow-sm"
+            >
+              <Edit3 size={15} />
+              Chỉnh sửa
+            </button>
           </div>
         </div>
       </div>
@@ -438,21 +389,9 @@ export default function ProductDetailPage() {
             {/* Name */}
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">CHI TIẾT SẢN PHẨM</p>
-              <div className="flex justify-between items-start gap-4">
               <h1 className="text-2xl lg:text-3xl font-extrabold text-gray-900 leading-snug">
                 {product.name}
               </h1>
-              <button
-                onClick={handleToggleWishlist}
-                className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full border transition-all ${
-                  isWishlisted
-                    ? "border-red-400 bg-red-50 text-red-500"
-                    : "border-gray-200 text-gray-400 hover:text-red-500 hover:bg-red-50 hover:border-red-300"
-                }`}
-              >
-                <Heart size={20} className={isWishlisted ? "fill-red-500" : ""} />
-              </button>
-            </div>
             </div>
 
             {/* Rating */}
@@ -479,64 +418,34 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            {/* Size Selector */}
-            <div className="mb-2">
-              <p className="text-sm font-medium text-gray-700 mb-3">Dung tích:</p>
-              <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`min-w-[4rem] px-3 h-10 rounded-full text-sm font-medium border transition-colors ${
-                      selectedSize === size
-                        ? "bg-[#008B8B] border-[#008B8B] text-white"
-                        : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+            {/* KPI row */}
+            <div className="grid grid-cols-3 gap-3">
+              <KpiCard
+                icon={TrendingUp}
+                label="Đã bán"
+                value={totalSold.toLocaleString("vi-VN")}
+                sub="sản phẩm"
+                color="bg-teal-50"
+                iconColor="text-[#008B8B]"
+              />
+              <KpiCard
+                icon={BarChart2}
+                label="Doanh thu"
+                value={`$${(totalRevenue / 1000).toFixed(0)}K`}
+                sub="tổng tích lũy"
+                color="bg-blue-50"
+                iconColor="text-blue-500"
+              />
+              <KpiCard
+                icon={Award}
+                label="Xếp hạng"
+                value={`#${rankInCat}`}
+                sub={`trong ${product.category}`}
+                color="bg-amber-50"
+                iconColor="text-amber-500"
+              />
             </div>
 
-            {/* Quantity & Buy */}
-            <div className="mb-2">
-              <p className="text-sm font-medium text-gray-700 mb-3">Số lượng:</p>
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center justify-between border border-gray-200 rounded-full h-12 w-32 px-1">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-black rounded-full"
-                  >
-                    <Minus size={18} />
-                  </button>
-                  <span className="font-semibold text-gray-800">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-black rounded-full"
-                  >
-                    <Plus size={18} />
-                  </button>
-                </div>
-                <button
-                  onClick={() => {
-                    handleAddToCart();
-                    navigate("/cart");
-                  }}
-                  className="flex-1 min-w-[140px] h-12 bg-[#ffb800] text-gray-900 rounded-full font-bold hover:bg-[#e5a600] transition-colors shadow-sm"
-                >
-                  Mua ngay
-                </button>
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 min-w-[140px] h-12 bg-[#008B8B] text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-[#007777] transition-colors shadow-sm"
-                >
-                  <ShoppingCart size={18} />
-                  Thêm vào giỏ
-                </button>
-              </div>
-            </div>
-            
             {/* SKU / Meta info */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               {[
@@ -590,6 +499,26 @@ export default function ProductDetailPage() {
                   </p>
                 </div>
 
+                {/* Sales performance */}
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base mb-3">Hiệu suất bán hàng</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                      { label: "Doanh số tháng này", value: Math.floor(totalSold * 0.12).toLocaleString("vi-VN"), unit: "sản phẩm", trend: "+12%" },
+                      { label: "Doanh thu tháng này", value: `${(totalRevenue * 0.12 / 1_000_000).toFixed(0)}M`, unit: "₫", trend: "+8%" },
+                      { label: "Tỷ lệ hài lòng", value: "94%", unit: "", trend: "+2%" },
+                      { label: "Tỷ lệ mua lại", value: "67%", unit: "", trend: "+5%" },
+                    ].map(({ label, value, unit, trend }) => (
+                      <div key={label} className="bg-gray-50 rounded-xl p-4 space-y-1">
+                        <p className="text-xs text-gray-500">{label}</p>
+                        <p className="text-xl font-extrabold text-gray-900">
+                          {value}<span className="text-sm font-medium text-gray-400 ml-1">{unit}</span>
+                        </p>
+                        <p className="text-xs text-green-500 font-semibold">{trend} so với tháng trước</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Rating snapshot */}
                 <div>
@@ -682,22 +611,6 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-100 rounded-xl p-5 mb-6 shadow-sm">
-                  <h4 className="font-bold text-gray-900 mb-3">Viết bình luận của bạn</h4>
-                  <textarea
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#008B8B] mb-3"
-                    rows="3"
-                    placeholder="Sản phẩm này thế nào? Chia sẻ trải nghiệm của bạn nhé..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                  ></textarea>
-                  <button
-                    onClick={handleAddComment}
-                    className="px-6 py-2.5 bg-[#008B8B] text-white rounded-lg text-sm font-semibold hover:bg-[#007777] transition-colors"
-                  >
-                    Gửi bình luận
-                  </button>
-                </div>
                 <div className="space-y-4">
                   {allReviews.map((review, idx) => (
                     <div
@@ -813,6 +726,154 @@ export default function ProductDetailPage() {
         </div>
       )}
 
+      {/* ── Edit Modal ── */}
+      {showEdit && editForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowEdit(false)}
+          />
+          {/* Modal box */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <Edit3 size={18} className="text-[#008B8B]" />
+                <h2 className="font-bold text-gray-900">Chỉnh sửa sản phẩm</h2>
+              </div>
+              <button
+                onClick={() => setShowEdit(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form body */}
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              {/* Tên sản phẩm */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                  Tên sản phẩm
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#008B8B] focus:ring-2 focus:ring-[#008B8B]/10 transition-colors"
+                />
+              </div>
+
+              {/* Giá bán + Giá gốc */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Giá bán (VND)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.price}
+                    onChange={(e) => setEditForm({ ...editForm, price: Number(e.target.value) })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#008B8B] focus:ring-2 focus:ring-[#008B8B]/10 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Giá gốc (VND)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.originalPrice}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, originalPrice: Number(e.target.value) })
+                    }
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#008B8B] focus:ring-2 focus:ring-[#008B8B]/10 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Giảm giá + Danh mục */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Giảm giá (%)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={editForm.discountPercentage}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, discountPercentage: Number(e.target.value) })
+                    }
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#008B8B] focus:ring-2 focus:ring-[#008B8B]/10 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Danh mục
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.category}
+                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#008B8B] focus:ring-2 focus:ring-[#008B8B]/10 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Trạng thái tồn kho */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                  Trạng thái tồn kho
+                </label>
+                <div className="flex gap-3">
+                  {[true, false].map((val) => (
+                    <button
+                      key={String(val)}
+                      onClick={() => setEditForm({ ...editForm, inStock: val })}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-colors ${
+                        editForm.inStock === val
+                          ? val
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-red-400 bg-red-50 text-red-600"
+                          : "border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-200"
+                      }`}
+                    >
+                      {val ? "✓ Còn hàng" : "✕ Hết hàng"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+              <button
+                onClick={handleResetEdit}
+                className="px-4 py-2.5 rounded-xl text-red-600 bg-red-50 text-sm font-semibold hover:bg-red-100 transition-colors"
+              >
+                Khôi phục mặc định
+              </button>
+              <div className="flex-1 flex gap-3">
+                <button
+                  onClick={() => setShowEdit(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 py-2.5 rounded-xl bg-[#008B8B] text-white text-sm font-semibold hover:bg-[#007777] transition-colors shadow-sm"
+                >
+                  Lưu thay đổi
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
+    </div>
   );
 }

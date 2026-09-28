@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   ChevronLeft,
   Star,
@@ -126,7 +127,8 @@ function KpiCard({ icon: Icon, label, value, sub, color = "bg-teal-50", iconColo
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const { user } = useAuth();
+  
   // productData giữ state cục bộ để phản ánh chỉnh sửa ngay lập tức trên UI
   const [productData, setProductData] = useState(() => {
     const base = mockProducts.find((p) => p.id === Number(id));
@@ -147,6 +149,7 @@ export default function ProductDetailPage() {
   const [newComment, setNewComment] = useState("");
   const sizes = ["15ml", "30ml", "50ml", "100ml"];
   const [helpfulMap, setHelpfulMap] = useState({});
+  const [unhelpfulMap, setUnhelpfulMap] = useState({});
   const [toast, setToast] = useState(null);       // { msg, type }
     // populated on open
 
@@ -166,6 +169,22 @@ export default function ProductDetailPage() {
   const product = productData;
 
   /* ── Helpers ── */
+  const toggleHelpful = (reviewId) => {
+    setHelpfulMap((prev) => {
+      const isHelpful = prev[reviewId];
+      if (!isHelpful) setUnhelpfulMap((u) => ({ ...u, [reviewId]: false }));
+      return { ...prev, [reviewId]: !isHelpful };
+    });
+  };
+
+  const toggleUnhelpful = (reviewId) => {
+    setUnhelpfulMap((prev) => {
+      const isUnhelpful = prev[reviewId];
+      if (!isUnhelpful) setHelpfulMap((h) => ({ ...h, [reviewId]: false }));
+      return { ...prev, [reviewId]: !isUnhelpful };
+    });
+  };
+
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -203,15 +222,17 @@ export default function ProductDetailPage() {
     if (!newComment.trim()) return;
     const allComments = JSON.parse(localStorage.getItem("productComments")) || {};
     const productComments = allComments[id] || [];
+    const authorName = user?.name || user?.fullName || user?.full_name || user?.username || "Khách hàng";
+    
     const commentObj = {
       id: Date.now(),
-      author: "Bạn", // or getting from AuthContext if we use it
-      avatar: "U",
+      author: authorName,
+      avatar: authorName.charAt(0).toUpperCase(),
       rating: 5,
       date: new Date().toLocaleDateString("vi-VN"),
       content: newComment,
       helpful: 0,
-      verified: true
+      verified: false
     };
     const updatedProductComments = [commentObj, ...productComments];
     allComments[id] = updatedProductComments;
@@ -725,9 +746,7 @@ export default function ProductDetailPage() {
                       <p className="text-gray-600 text-sm leading-relaxed pl-12">{review.content}</p>
                       <div className="flex items-center gap-3 pl-12 text-xs text-gray-400">
                         <button
-                          onClick={() =>
-                            setHelpfulMap((p) => ({ ...p, [review.id]: !p[review.id] }))
-                          }
+                          onClick={() => toggleHelpful(review.id)}
                           className={`flex items-center gap-1 transition-colors ${
                             helpfulMap[review.id] ? "text-[#008B8B]" : "hover:text-gray-600"
                           }`}
@@ -735,7 +754,12 @@ export default function ProductDetailPage() {
                           <ThumbsUp size={13} />
                           Hữu ích ({review.helpful + (helpfulMap[review.id] ? 1 : 0)})
                         </button>
-                        <button className="flex items-center gap-1 hover:text-gray-600 transition-colors">
+                        <button
+                          onClick={() => toggleUnhelpful(review.id)}
+                          className={`flex items-center gap-1 transition-colors ${
+                            unhelpfulMap[review.id] ? "text-red-500" : "hover:text-gray-600"
+                          }`}
+                        >
                           <ThumbsDown size={13} />
                           Không hữu ích
                         </button>

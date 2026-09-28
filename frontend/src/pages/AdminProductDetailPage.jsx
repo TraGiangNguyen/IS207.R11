@@ -137,6 +137,7 @@ export default function AdminProductDetailPage() {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [helpfulMap, setHelpfulMap] = useState({});
+  const [unhelpfulMap, setUnhelpfulMap] = useState({});
   const [toast, setToast] = useState(null);       // { msg, type }
   const [showEdit, setShowEdit] = useState(false);
   const [editForm, setEditForm] = useState(null);  // populated on open
@@ -157,6 +158,22 @@ export default function AdminProductDetailPage() {
   const product = productData;
 
   /* ── Helpers ── */
+  const toggleHelpful = (reviewId) => {
+    setHelpfulMap((prev) => {
+      const isHelpful = prev[reviewId];
+      if (!isHelpful) setUnhelpfulMap((u) => ({ ...u, [reviewId]: false }));
+      return { ...prev, [reviewId]: !isHelpful };
+    });
+  };
+
+  const toggleUnhelpful = (reviewId) => {
+    setUnhelpfulMap((prev) => {
+      const isUnhelpful = prev[reviewId];
+      if (!isUnhelpful) setHelpfulMap((h) => ({ ...h, [reviewId]: false }));
+      return { ...prev, [reviewId]: !isUnhelpful };
+    });
+  };
+
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -638,9 +655,7 @@ export default function AdminProductDetailPage() {
                       <p className="text-gray-600 text-sm leading-relaxed pl-12">{review.content}</p>
                       <div className="flex items-center gap-3 pl-12 text-xs text-gray-400">
                         <button
-                          onClick={() =>
-                            setHelpfulMap((p) => ({ ...p, [review.id]: !p[review.id] }))
-                          }
+                          onClick={() => toggleHelpful(review.id)}
                           className={`flex items-center gap-1 transition-colors ${
                             helpfulMap[review.id] ? "text-[#008B8B]" : "hover:text-gray-600"
                           }`}
@@ -648,7 +663,12 @@ export default function AdminProductDetailPage() {
                           <ThumbsUp size={13} />
                           Hữu ích ({review.helpful + (helpfulMap[review.id] ? 1 : 0)})
                         </button>
-                        <button className="flex items-center gap-1 hover:text-gray-600 transition-colors">
+                        <button
+                          onClick={() => toggleUnhelpful(review.id)}
+                          className={`flex items-center gap-1 transition-colors ${
+                            unhelpfulMap[review.id] ? "text-red-500" : "hover:text-gray-600"
+                          }`}
+                        >
                           <ThumbsDown size={13} />
                           Không hữu ích
                         </button>

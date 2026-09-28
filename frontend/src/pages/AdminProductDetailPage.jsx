@@ -141,6 +141,18 @@ export default function AdminProductDetailPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [editForm, setEditForm] = useState(null);  // populated on open
 
+  // Load local comments for this product
+  const [localComments, setLocalComments] = useState(() => {
+    try {
+      const allComments = JSON.parse(localStorage.getItem("productComments")) || {};
+      return allComments[id] || [];
+    } catch {
+      return [];
+    }
+  });
+
+  const allReviews = [...localComments, ...mockReviews];
+
   // Alias ngắn gọn để dùng trong JSX
   const product = productData;
 
@@ -220,6 +232,22 @@ export default function AdminProductDetailPage() {
     }
     setShowEdit(false);
     showToast("Đã lưu thay đổi thành công!");
+  };
+
+  /* ── Reset edit ── */
+  const handleResetEdit = () => {
+    try {
+      const overrides = JSON.parse(localStorage.getItem("productOverrides")) || {};
+      delete overrides[product.id];
+      localStorage.setItem("productOverrides", JSON.stringify(overrides));
+      
+      const base = mockProducts.find((p) => p.id === Number(id));
+      setProductData(base);
+    } catch (e) {
+      console.warn("Lỗi khi reset:", e);
+    }
+    setShowEdit(false);
+    showToast("Đã khôi phục sản phẩm về mặc định!");
   };
 
   if (!product) {
@@ -584,7 +612,7 @@ export default function AdminProductDetailPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {mockReviews.map((review, idx) => (
+                  {allReviews.map((review, idx) => (
                     <div
                       key={review.id}
                       className="border border-gray-100 rounded-xl p-5 space-y-2.5 bg-white hover:border-[#008B8B]/20 transition-colors"
@@ -823,17 +851,25 @@ export default function AdminProductDetailPage() {
             {/* Footer */}
             <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
               <button
-                onClick={() => setShowEdit(false)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                onClick={handleResetEdit}
+                className="px-4 py-2.5 rounded-xl text-red-600 bg-red-50 text-sm font-semibold hover:bg-red-100 transition-colors"
               >
-                Hủy
+                Khôi phục mặc định
               </button>
-              <button
-                onClick={handleSaveEdit}
-                className="flex-1 py-2.5 rounded-xl bg-[#008B8B] text-white text-sm font-semibold hover:bg-[#007777] transition-colors shadow-sm"
-              >
-                Lưu thay đổi
-              </button>
+              <div className="flex-1 flex gap-3">
+                <button
+                  onClick={() => setShowEdit(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 py-2.5 rounded-xl bg-[#008B8B] text-white text-sm font-semibold hover:bg-[#007777] transition-colors shadow-sm"
+                >
+                  Lưu thay đổi
+                </button>
+              </div>
             </div>
           </div>
         </div>

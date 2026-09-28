@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ProductCard({ product }) {
   const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "staff";
 
   const handleTymClick = (e) => {
     e.preventDefault();
@@ -113,13 +116,16 @@ export default function ProductCard({ product }) {
             <Heart size={20} className={isLiked ? "fill-current" : ""} />
           </button>
 
-          <button
-            onClick={handleAddToCart}
-            className="flex-1 flex items-center justify-center gap-2 bg-[#008B8B] text-white py-2 px-4 rounded-lg hover:bg-[#007070] transition-colors font-medium"
-          >
-            <ShoppingCart size={18} />
-            Add to Cart
-          </button>
+          {/* Hide Add to Cart for Admin/Staff */}
+          {!isAdmin && (
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 flex items-center justify-center gap-2 bg-[#008B8B] text-white py-2 px-4 rounded-lg hover:bg-[#007070] transition-colors font-medium"
+            >
+              <ShoppingCart size={18} />
+              Add to Cart
+            </button>
+          )}
         </div>
       </div>
     </div>

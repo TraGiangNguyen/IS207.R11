@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import SidebarFilter from "../components/Sidebar/SidebarFilter";
 import ProductCard from "../components/product/ProductCard";
 import mockProducts from "../data/mockProducts";
+import { useAuth } from "../context/AuthContext";
 
 // Merge mockProducts với overrides của admin (nếu có) từ localStorage
 function getMergedProducts() {
@@ -17,6 +18,16 @@ function getMergedProducts() {
 
 export default function ProductCatalogPage() {
   const [filteredProducts, setFilteredProducts] = useState(() => getMergedProducts());
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "staff";
+
+  const handleResetAll = () => {
+    if (window.confirm("Bạn có chắc muốn khôi phục tất cả sản phẩm về mặc định không?")) {
+      localStorage.removeItem("productOverrides");
+      setFilteredProducts(mockProducts);
+      window.location.reload();
+    }
+  };
 
   const handleFilterChange = (filters) => {
     const { searchTerm, categories, priceRange, ratings } = filters;
@@ -47,7 +58,7 @@ export default function ProductCatalogPage() {
       <SidebarFilter onFilterChange={handleFilterChange} />
 
       <div className="flex-1">
-        <div className="mb-6 bg-white p-4 rounded-xl border border-gray-100">
+        <div className="mb-6 bg-white p-4 rounded-xl border border-gray-100 flex justify-between items-center">
           <h2 className="text-gray-600 font-medium text-sm">
             Showing{" "}
             <span className="font-bold text-[#008B8B]">
@@ -55,6 +66,14 @@ export default function ProductCatalogPage() {
             </span>{" "}
             results
           </h2>
+          {isAdmin && (
+            <button
+              onClick={handleResetAll}
+              className="text-sm px-4 py-2 bg-red-50 text-red-600 font-semibold rounded-lg hover:bg-red-100 transition-colors"
+            >
+              Khôi phục tất cả sản phẩm
+            </button>
+          )}
         </div>
 
         {filteredProducts.length > 0 ? (
